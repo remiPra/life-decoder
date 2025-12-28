@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Récupérer la clé API depuis les variables d'environnement SERVEUR
+  // Récupérer la    clé API depuis les variables d'environnement SERVEUR
   const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {

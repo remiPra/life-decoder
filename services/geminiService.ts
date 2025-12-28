@@ -15,7 +15,7 @@ export const runAnalysis = async (
   profile: NumerologyProfile,
   timingContext: TimingContext = {}
 ): Promise<AIResponse> => {
-  // Calculate temporal numbers
+  // Calculate       temporal numbers
   const temporal: TemporalNumbers = {};
 
   if (timingContext.questionDate) {
