@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DecisionResult, TimingScore } from './decision-types';
 
 interface ResultsViewProps {
@@ -7,6 +7,8 @@ interface ResultsViewProps {
   onNewDecision: () => void;
   onFeedback?: (feedback: 'positive' | 'neutral' | 'negative') => void;
 }
+
+type Slide = 'intro' | 'situation' | 'timing' | 'scenarios' | 'actions' | 'complete';
 
 function ScoreIndicator({ score }: { score: TimingScore }) {
   const colors = {
@@ -24,9 +26,48 @@ function ScoreIndicator({ score }: { score: TimingScore }) {
   );
 }
 
+// Composant pour l'effet de typing progressif
+function TypeWriter({ text, speed = 30, onComplete }: { text: string; speed?: number; onComplete?: () => void }) {
+  const [displayText, setDisplayText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, speed);
+      return () => clearTimeout(timeout);
+    } else if (onComplete && currentIndex === text.length) {
+      onComplete();
+    }
+  }, [currentIndex, text, speed, onComplete]);
+
+  return <span>{displayText}</span>;
+}
+
 export default function ResultsView({ result, prenom, onNewDecision, onFeedback }: ResultsViewProps) {
-  const [feedbackGiven, setFeedbackGiven] = React.useState(false);
-  const [completedActions, setCompletedActions] = React.useState<number[]>([]);
+  const [feedbackGiven, setFeedbackGiven] = useState(false);
+  const [completedActions, setCompletedActions] = useState<number[]>([]);
+  const [currentSlide, setCurrentSlide] = useState<Slide>('intro');
+  const [showContent, setShowContent] = useState(false);
+
+  useEffect(() => {
+    // Séquence d'apparition des slides
+    const timers: NodeJS.Timeout[] = [];
+
+    timers.push(setTimeout(() => setCurrentSlide('situation'), 1500));
+    timers.push(setTimeout(() => setCurrentSlide('timing'), 4000));
+    timers.push(setTimeout(() => setCurrentSlide('scenarios'), 7000));
+    timers.push(setTimeout(() => setCurrentSlide('actions'), 11000));
+    timers.push(setTimeout(() => setCurrentSlide('complete'), 15000));
+
+    return () => timers.forEach(t => clearTimeout(t));
+  }, []);
+
+  useEffect(() => {
+    setShowContent(true);
+  }, [currentSlide]);
 
   const handleFeedback = (feedback: 'positive' | 'neutral' | 'negative') => {
     setFeedbackGiven(true);
@@ -43,125 +84,151 @@ export default function ResultsView({ result, prenom, onNewDecision, onFeedback 
     );
   };
 
+  const slideVisible = (slide: Slide): boolean => {
+    const order: Slide[] = ['intro', 'situation', 'timing', 'scenarios', 'actions', 'complete'];
+    const currentIndex = order.indexOf(currentSlide);
+    const slideIndex = order.indexOf(slide);
+    return slideIndex <= currentIndex;
+  };
+
   return (
     <div className="max-w-4xl mx-auto fade-in space-y-8 pb-32 px-6">
-      {/* Header */}
-      <header className="text-center pt-12">
-        <p className="text-[#C5A059] text-[10px] tracking-[0.6em] uppercase mb-4">Analyse Complète</p>
-        <h2 className="text-5xl font-serif text-white gold-glow mb-4">{prenom}</h2>
-        <p className="text-stone-500">Voici ton analyse de décision</p>
-      </header>
+      {/* Header avec animation d'entrée */}
+      {slideVisible('intro') && (
+        <header className="text-center pt-12 animate-fade-in">
+          <p className="text-[#C5A059] text-[10px] tracking-[0.6em] uppercase mb-4">Analyse Complète</p>
+          <h2 className="text-5xl font-serif text-white gold-glow mb-4">{prenom}</h2>
+          <p className="text-stone-500">
+            <TypeWriter text="Voici ton analyse de décision..." speed={40} />
+          </p>
+        </header>
+      )}
 
-      {/* 1. Reformulation */}
-      <section className="glass p-8 rounded-[2.5rem] gold-border">
-        <h3 className="text-sm uppercase tracking-[0.3em] text-stone-500 mb-4">Ta Situation</h3>
-        <p className="text-stone-200 text-lg leading-relaxed font-serif">
-          {result.reformulation}
-        </p>
-      </section>
+      {/* 1. Reformulation avec effet typewriter */}
+      {slideVisible('situation') && (
+        <section className="glass p-8 rounded-[2.5rem] gold-border animate-slide-up">
+          <h3 className="text-sm uppercase tracking-[0.3em] text-stone-500 mb-4">Ta Situation</h3>
+          <p className="text-stone-200 text-lg leading-relaxed font-serif">
+            <TypeWriter text={result.reformulation} speed={20} />
+          </p>
+        </section>
+      )}
 
-      {/* 2. Score de Timing */}
-      <section className="glass p-10 rounded-[2.5rem] border-2 border-[#C5A059]/30">
-        <h3 className="text-sm uppercase tracking-[0.3em] text-[#C5A059] mb-6 text-center">Analyse du Timing</h3>
-        <div className="flex flex-col md:flex-row items-center gap-8">
-          <div className="flex-shrink-0">
-            <ScoreIndicator score={result.timing.score} />
+      {/* 2. Score de Timing avec animation */}
+      {slideVisible('timing') && (
+        <section className="glass p-10 rounded-[2.5rem] border-2 border-[#C5A059]/30 animate-slide-up">
+          <h3 className="text-sm uppercase tracking-[0.3em] text-[#C5A059] mb-6 text-center">Analyse du Timing</h3>
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-shrink-0 animate-pulse-glow">
+              <ScoreIndicator score={result.timing.score} />
+            </div>
+            <div className="flex-1">
+              <p className="text-stone-300 leading-relaxed">
+                <TypeWriter text={result.timing.explication} speed={25} />
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <p className="text-stone-300 leading-relaxed">
-              {result.timing.explication}
-            </p>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* 3. Trois Scénarios */}
-      <section>
-        <h3 className="text-sm uppercase tracking-[0.3em] text-stone-500 mb-6 text-center">3 Scénarios Possibles</h3>
-        <div className="space-y-4">
-          {result.scenarios.map((scenario, index) => (
-            <div key={index} className="glass p-8 rounded-[2rem] gold-border">
-              <h4 className="text-xl font-serif text-[#C5A059] mb-4">{scenario.titre}</h4>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-green-500/70 mb-2">✓ Avantages</p>
-                  <ul className="space-y-2">
-                    {scenario.avantages.map((avantage, i) => (
-                      <li key={i} className="text-stone-300 text-sm flex gap-2">
-                        <span className="text-green-500">•</span>
-                        <span>{avantage}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-orange-500/70 mb-2">⚠ Points de vigilance</p>
-                  <ul className="space-y-2">
-                    {scenario.vigilance.map((point, i) => (
-                      <li key={i} className="text-stone-300 text-sm flex gap-2">
-                        <span className="text-orange-500">•</span>
-                        <span>{point}</span>
-                      </li>
-                    ))}
-                  </ul>
+      {/* 3. Trois Scénarios avec animation progressive */}
+      {slideVisible('scenarios') && (
+        <section className="animate-slide-up">
+          <h3 className="text-sm uppercase tracking-[0.3em] text-stone-500 mb-6 text-center">3 Scénarios Possibles</h3>
+          <div className="space-y-4">
+            {result.scenarios.map((scenario, index) => (
+              <div
+                key={index}
+                className="glass p-8 rounded-[2rem] gold-border"
+                style={{ animationDelay: `${index * 0.3}s` }}
+              >
+                <h4 className="text-xl font-serif text-[#C5A059] mb-4">{scenario.titre}</h4>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-green-500/70 mb-2">✓ Avantages</p>
+                    <ul className="space-y-2">
+                      {scenario.avantages.map((avantage, i) => (
+                        <li key={i} className="text-stone-300 text-sm flex gap-2">
+                          <span className="text-green-500">•</span>
+                          <span>{avantage}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-orange-500/70 mb-2">⚠ Points de vigilance</p>
+                    <ul className="space-y-2">
+                      {scenario.vigilance.map((point, i) => (
+                        <li key={i} className="text-stone-300 text-sm flex gap-2">
+                          <span className="text-orange-500">•</span>
+                          <span>{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 4. Micro-Actions (LE PLUS IMPORTANT) */}
-      <section className="glass p-10 rounded-[2.5rem] border-2 border-[#C5A059]/50">
-        <h3 className="text-sm uppercase tracking-[0.3em] text-[#C5A059] mb-2 text-center">Actions Concrètes</h3>
-        <p className="text-stone-400 text-center mb-2">3 choses à faire cette semaine</p>
-        <p className="text-stone-600 text-center text-xs mb-8">✓ Coche les actions au fur et à mesure</p>
-        <div className="space-y-4">
-          {result.actions.map((action) => {
-            const isCompleted = completedActions.includes(action.numero);
-            return (
-              <button
-                key={action.numero}
-                onClick={() => toggleAction(action.numero)}
-                className={`w-full flex gap-4 items-start p-6 rounded-2xl border transition-all ${
-                  isCompleted
-                    ? 'bg-green-500/10 border-green-500/50 opacity-75'
-                    : 'bg-stone-900/30 border-stone-800 hover:border-[#C5A059]/30'
-                }`}
-              >
-                <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                  isCompleted
-                    ? 'bg-green-500 scale-110'
-                    : 'bg-[#C5A059]'
-                }`}>
-                  {isCompleted ? (
-                    <span className="text-white font-bold text-lg">✓</span>
-                  ) : (
-                    <span className="text-black font-bold text-lg">{action.numero}</span>
-                  )}
-                </div>
-                <div className="flex-1 text-left">
-                  <p className={`font-medium mb-2 leading-relaxed transition-all ${
-                    isCompleted ? 'text-stone-400 line-through' : 'text-white'
-                  }`}>
-                    {action.texte}
-                  </p>
-                  <p className="text-stone-500 text-sm">{action.pourquoi}</p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-        {completedActions.length === 3 && (
-          <div className="mt-6 text-center">
-            <p className="text-green-400 font-medium animate-pulse">🎉 Bravo ! Tu as tout coché !</p>
+            ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
+
+      {/* 4. Micro-Actions avec animation */}
+      {slideVisible('actions') && (
+        <section className="glass p-10 rounded-[2.5rem] border-2 border-[#C5A059]/50 animate-slide-up">
+          <h3 className="text-sm uppercase tracking-[0.3em] text-[#C5A059] mb-2 text-center">Actions Concrètes</h3>
+          <p className="text-stone-400 text-center mb-2">
+            <TypeWriter text="3 choses à faire cette semaine" speed={35} />
+          </p>
+          <p className="text-stone-600 text-center text-xs mb-8">✓ Coche les actions au fur et à mesure</p>
+          <div className="space-y-4">
+            {result.actions.map((action, idx) => {
+              const isCompleted = completedActions.includes(action.numero);
+              return (
+                <button
+                  key={action.numero}
+                  onClick={() => toggleAction(action.numero)}
+                  className={`w-full flex gap-4 items-start p-6 rounded-2xl border transition-all animate-slide-in ${
+                    isCompleted
+                      ? 'bg-green-500/10 border-green-500/50 opacity-75'
+                      : 'bg-stone-900/30 border-stone-800 hover:border-[#C5A059]/30'
+                  }`}
+                  style={{ animationDelay: `${idx * 0.2}s` }}
+                >
+                  <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                    isCompleted
+                      ? 'bg-green-500 scale-110'
+                      : 'bg-[#C5A059] animate-pulse-subtle'
+                  }`}>
+                    {isCompleted ? (
+                      <span className="text-white font-bold text-lg">✓</span>
+                    ) : (
+                      <span className="text-black font-bold text-lg">{action.numero}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className={`font-medium mb-2 leading-relaxed transition-all ${
+                      isCompleted ? 'text-stone-400 line-through' : 'text-white'
+                    }`}>
+                      {action.texte}
+                    </p>
+                    <p className="text-stone-500 text-sm">{action.pourquoi}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          {completedActions.length === 3 && (
+            <div className="mt-6 text-center animate-bounce-in">
+              <p className="text-green-400 font-medium">🎉 Bravo ! Tu as tout coché !</p>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* 5. Feedback */}
-      {!feedbackGiven && onFeedback && (
-        <section className="glass p-8 rounded-[2rem] gold-border text-center">
+      {slideVisible('complete') && !feedbackGiven && onFeedback && (
+        <section className="glass p-8 rounded-[2rem] gold-border text-center animate-fade-in">
           <p className="text-white mb-6">Cette analyse t'a-t-elle aidé ?</p>
           <div className="flex justify-center gap-4">
             <button
@@ -187,20 +254,22 @@ export default function ResultsView({ result, prenom, onNewDecision, onFeedback 
       )}
 
       {feedbackGiven && (
-        <section className="text-center">
+        <section className="text-center animate-fade-in">
           <p className="text-stone-500 mb-4">Merci pour ton retour ! 🙏</p>
         </section>
       )}
 
       {/* 6. CTA */}
-      <section className="text-center pt-8">
-        <button
-          onClick={onNewDecision}
-          className="px-12 py-5 bg-stone-100 text-black font-bold uppercase tracking-[0.4em] rounded-3xl hover:bg-white transition-all shadow-2xl active:scale-95"
-        >
-          Nouvelle Décision
-        </button>
-      </section>
+      {slideVisible('complete') && (
+        <section className="text-center pt-8 animate-fade-in">
+          <button
+            onClick={onNewDecision}
+            className="px-12 py-5 bg-stone-100 text-black font-bold uppercase tracking-[0.4em] rounded-3xl hover:bg-white transition-all shadow-2xl active:scale-95 animate-pulse-subtle"
+          >
+            Nouvelle Décision
+          </button>
+        </section>
+      )}
     </div>
   );
 }
