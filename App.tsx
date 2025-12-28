@@ -141,12 +141,13 @@ export default function App() {
               <p className="text-stone-500 text-sm">Choisis l'analyse qui résonne avec toi</p>
           </header>
 
-          {/* Navigation Tabs */}
+          {/* Navigation Tabs - Mobile First Layout */}
           <div className="mb-12">
-            <div className="flex justify-center gap-4 mb-12">
+            <div className="flex flex-col md:flex-row justify-center gap-4 mb-12 max-w-4xl mx-auto">
+              {/* Débuter - Full width on mobile, auto on desktop */}
               <button
                 onClick={() => setViewMode('start')}
-                className={`px-8 py-4 rounded-2xl font-serif uppercase tracking-[0.3em] text-sm transition-all ${
+                className={`w-full md:w-auto px-8 py-5 md:py-4 rounded-2xl font-serif uppercase tracking-[0.3em] text-base md:text-sm transition-all ${
                   viewMode === 'start'
                     ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20'
                     : 'glass gold-border text-stone-400 hover:text-white'
@@ -154,26 +155,30 @@ export default function App() {
               >
                 ✦ Débuter
               </button>
-              <button
-                onClick={() => setViewMode('identity')}
-                className={`px-8 py-4 rounded-2xl font-serif uppercase tracking-[0.3em] text-sm transition-all ${
-                  viewMode === 'identity'
-                    ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20'
-                    : 'glass gold-border text-stone-400 hover:text-white'
-                }`}
-              >
-                Analyses Approfondies
-              </button>
-              <button
-                onClick={() => setViewMode('temporal')}
-                className={`px-8 py-4 rounded-2xl font-serif uppercase tracking-[0.3em] text-sm transition-all ${
-                  viewMode === 'temporal'
-                    ? 'bg-[#2dd4bf] text-black shadow-lg shadow-[#2dd4bf]/20'
-                    : 'glass border border-[#2dd4bf]/30 text-stone-400 hover:text-white'
-                }`}
-              >
-                Oracle Temporel
-              </button>
+
+              {/* Two buttons side by side on mobile */}
+              <div className="flex gap-4 w-full md:w-auto">
+                <button
+                  onClick={() => setViewMode('identity')}
+                  className={`flex-1 md:flex-none px-4 md:px-8 py-4 rounded-2xl font-serif uppercase tracking-[0.2em] md:tracking-[0.3em] text-xs md:text-sm transition-all ${
+                    viewMode === 'identity'
+                      ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20'
+                      : 'glass gold-border text-stone-400 hover:text-white'
+                  }`}
+                >
+                  Analyses Approfondies
+                </button>
+                <button
+                  onClick={() => setViewMode('temporal')}
+                  className={`flex-1 md:flex-none px-4 md:px-8 py-4 rounded-2xl font-serif uppercase tracking-[0.2em] md:tracking-[0.3em] text-xs md:text-sm transition-all ${
+                    viewMode === 'temporal'
+                      ? 'bg-[#2dd4bf] text-black shadow-lg shadow-[#2dd4bf]/20'
+                      : 'glass border border-[#2dd4bf]/30 text-stone-400 hover:text-white'
+                  }`}
+                >
+                  Oracle Temporel
+                </button>
+              </div>
             </div>
 
             {/* START VIEW */}
