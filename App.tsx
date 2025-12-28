@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { AppStep, NumerologyProfile, AnalysisModule, AIResponse, TimingContext } from './types';
 import { calculateFullProfile, ARCHETYPES } from './utils/numerology';
-import { runAnalysis } from './services/geminiService';
+import { runAnalysis } from './services/mysticalEngine';
+import { exportMysticalAnalysisToPDF } from './utils/pdfExport';
 
 const InputField = ({ label, value, onChange, placeholder, type = "text", maxLength }: any) => (
   <div className="space-y-2">
@@ -317,7 +318,14 @@ export default function App() {
                 />
               </div>
 
-              <div className="text-center pt-16">
+              <div className="text-center pt-16 space-y-4">
+                <button
+                  onClick={() => exportMysticalAnalysisToPDF(analysis.analysis, profile)}
+                  className="px-10 py-4 bg-[#C5A059]/10 border-2 border-[#C5A059] text-[#C5A059] font-bold uppercase tracking-[0.3em] rounded-3xl hover:bg-[#C5A059] hover:text-black transition-all shadow-lg active:scale-95"
+                >
+                  📄 Télécharger PDF
+                </button>
+                <br />
                 <button onClick={() => setStep(AppStep.NEXUS)} className="px-20 py-6 bg-stone-100 text-black font-bold uppercase tracking-[0.4em] rounded-3xl hover:bg-white transition-all shadow-2xl active:scale-95">Retour au Nexus</button>
               </div>
             </>

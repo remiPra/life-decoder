@@ -234,10 +234,11 @@ export default function DecisionCanvas({ decisionType, onComplete, onBack }: Dec
 
             <div className="flex gap-4 justify-end">
               <input
-                type="date"
+                type="text"
                 value={echeance}
                 onChange={(e) => setEcheance(e.target.value)}
-                className="glass p-4 rounded-2xl rounded-tr-none max-w-xs text-white outline-none focus:border focus:border-[#C5A059]/30"
+                placeholder="jj/mm/aaaa"
+                className="glass p-4 rounded-2xl rounded-tr-none max-w-xs text-white outline-none focus:border focus:border-[#C5A059]/30 placeholder-stone-600"
                 autoFocus={step === 'echeance'}
               />
             </div>

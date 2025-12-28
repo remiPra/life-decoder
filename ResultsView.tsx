@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DecisionResult, TimingScore } from './decision-types';
+import { exportRationalAnalysisToPDF } from './utils/pdfExport';
 
 interface ResultsViewProps {
   result: DecisionResult;
@@ -261,7 +262,14 @@ export default function ResultsView({ result, prenom, onNewDecision, onFeedback 
 
       {/* 6. CTA */}
       {slideVisible('complete') && (
-        <section className="text-center pt-8 animate-fade-in">
+        <section className="text-center pt-8 animate-fade-in space-y-4">
+          <button
+            onClick={() => exportRationalAnalysisToPDF(result)}
+            className="px-10 py-4 bg-[#C5A059]/10 border-2 border-[#C5A059] text-[#C5A059] font-bold uppercase tracking-[0.3em] rounded-3xl hover:bg-[#C5A059] hover:text-black transition-all shadow-lg active:scale-95"
+          >
+            📄 Télécharger PDF
+          </button>
+          <br />
           <button
             onClick={onNewDecision}
             className="px-12 py-5 bg-stone-100 text-black font-bold uppercase tracking-[0.4em] rounded-3xl hover:bg-white transition-all shadow-2xl active:scale-95 animate-pulse-subtle"
