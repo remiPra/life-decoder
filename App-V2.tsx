@@ -1,0 +1,176 @@
+import React, { useState } from 'react';
+import { AppStep, DecisionType, DecisionInput, DecisionResult } from './decision-types';
+import { NumerologyProfile } from './types';
+import { analyzeDecision } from './decisionEngine';
+import { saveDecision } from './storageUtils';
+
+import Welcome from './Welcome';
+import ProfileForm from './ProfileForm';
+import DecisionTypeSelector from './DecisionTypeSelector';
+import DecisionCanvas from './DecisionCanvas';
+import ResultsView from './ResultsView';
+
+export default function App() {
+  const [step, setStep] = useState<AppStep>(AppStep.WELCOME);
+  const [prenom, setPrenom] = useState('');
+  const [dateNaissance, setDateNaissance] = useState('');
+  const [profile, setProfile] = useState<NumerologyProfile | null>(null);
+  const [decisionType, setDecisionType] = useState<DecisionType | null>(null);
+  const [result, setResult] = useState<DecisionResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleStart = () => {
+    setStep(AppStep.PROFILE);
+  };
+
+  const handleProfileSubmit = (newPrenom: string, newDateNaissance: string, newProfile: NumerologyProfile) => {
+    setPrenom(newPrenom);
+    setDateNaissance(newDateNaissance);
+    setProfile(newProfile);
+    setStep(AppStep.DECISION_TYPE);
+  };
+
+  const handleDecisionTypeSelect = (type: DecisionType) => {
+    setDecisionType(type);
+    setStep(AppStep.DECISION_CANVAS);
+  };
+
+  const handleDecisionComplete = async (data: {
+    situation: string;
+    decision: string;
+    echeance?: string;
+    importance: number;
+  }) => {
+    if (!profile || !decisionType) return;
+
+    setLoading(true);
+    setError(null);
+    setStep(AppStep.RESULTS);
+
+    const decisionInput: DecisionInput = {
+      id: crypto.randomUUID(),
+      prenom,
+      dateNaissance,
+      anneePerso: profile.personalYear,
+      moisPerso: profile.personalMonth,
+      jourPerso: profile.personalDay,
+      typeDecision: decisionType,
+      situation: data.situation,
+      decision: data.decision,
+      echeance: data.echeance,
+      importance: data.importance,
+      createdAt: new Date()
+    };
+
+    try {
+      const analysis = await analyzeDecision(decisionInput);
+
+      const fullResult: DecisionResult = {
+        id: decisionInput.id,
+        ...analysis,
+        createdAt: new Date()
+      };
+
+      setResult(fullResult);
+      saveDecision(fullResult);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      console.error('Error analyzing decision:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNewDecision = () => {
+    setStep(AppStep.WELCOME);
+    setPrenom('');
+    setDateNaissance('');
+    setProfile(null);
+    setDecisionType(null);
+    setResult(null);
+    setError(null);
+  };
+
+  const handleBackFromCanvas = () => {
+    setStep(AppStep.DECISION_TYPE);
+  };
+
+  const handleFeedback = (feedback: 'positive' | 'neutral' | 'negative') => {
+    if (result) {
+      const updatedResult = { ...result, feedback };
+      setResult(updatedResult);
+      saveDecision(updatedResult);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050505] text-stone-300 font-sans overflow-x-hidden">
+      {step === AppStep.WELCOME && (
+        <Welcome onStart={handleStart} />
+      )}
+
+      {step === AppStep.PROFILE && (
+        <ProfileForm onSubmit={handleProfileSubmit} />
+      )}
+
+      {step === AppStep.DECISION_TYPE && (
+        <DecisionTypeSelector onSelect={handleDecisionTypeSelect} />
+      )}
+
+      {step === AppStep.DECISION_CANVAS && decisionType && (
+        <DecisionCanvas
+          decisionType={decisionType}
+          onComplete={handleDecisionComplete}
+          onBack={handleBackFromCanvas}
+        />
+      )}
+
+      {step === AppStep.RESULTS && (
+        <>
+          {loading && (
+            <div className="fixed inset-0 bg-black/98 flex flex-col items-center justify-center z-50">
+              <div className="relative w-64 h-64">
+                <div className="absolute inset-0 border-[1px] border-stone-900 rounded-full"></div>
+                <div className="absolute inset-0 border-t-[2px] border-[#C5A059] rounded-full animate-spin"></div>
+                <div className="absolute inset-8 border-[1px] border-stone-900 rounded-full animate-pulse"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-[12px] text-[#C5A059] font-serif tracking-[0.6em] uppercase gold-glow animate-pulse text-center leading-loose">
+                    Analyse<br />En Cours
+                  </span>
+                </div>
+              </div>
+              <p className="mt-16 text-stone-600 text-[10px] tracking-[0.5em] uppercase font-bold animate-pulse">
+                Life Decoder analyse ta situation...
+              </p>
+            </div>
+          )}
+
+          {error && !loading && (
+            <div className="max-w-2xl mx-auto mt-20 fade-in px-6">
+              <div className="glass p-10 rounded-[2.5rem] border-2 border-red-500/30 text-center">
+                <p className="text-red-400 mb-6">❌ {error}</p>
+                <button
+                  onClick={() => setStep(AppStep.DECISION_CANVAS)}
+                  className="px-8 py-4 bg-[#C5A059] text-black font-bold rounded-xl hover:bg-[#D4AF37] transition-all active:scale-95"
+                >
+                  Réessayer
+                </button>
+              </div>
+            </div>
+          )}
+
+          {result && !loading && !error && (
+            <ResultsView
+              result={result}
+              prenom={prenom}
+              onNewDecision={handleNewDecision}
+              onFeedback={handleFeedback}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+}

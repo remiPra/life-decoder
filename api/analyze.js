@@ -1,0 +1,59 @@
+// 🔒 VERCEL SERVERLESS FUNCTION
+// Cette fonction protège ta clé API côté serveur
+// Elle ne sera JAMAIS exposée au navigateur
+
+export default async function handler(req, res) {
+  // Sécurité : Accepter seulement POST
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Récupérer la clé API depuis les variables d'environnement SERVEUR
+  const apiKey = process.env.OPENROUTER_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: 'API key not configured' });
+  }
+
+  try {
+    const { prompt } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    // Appeler OpenRouter depuis le SERVEUR (pas le navigateur)
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': req.headers.origin || 'https://life-decoder.vercel.app',
+        'X-Title': 'Life Decoder'
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-opus-4.5',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 2000,
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return res.status(response.status).json({ error: errorData });
+    }
+
+    const data = await response.json();
+
+    // Renvoyer la réponse au Frontend
+    return res.status(200).json(data);
+
+  } catch (error) {
+    console.error('API Error:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+}
