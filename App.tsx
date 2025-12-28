@@ -3,10 +3,11 @@ import { AppStep, NumerologyProfile, AnalysisModule, AIResponse, TimingContext }
 import { calculateFullProfile, ARCHETYPES } from './utils/numerology';
 import { runAnalysis } from './services/mysticalEngine';
 import { exportMysticalAnalysisToPDF } from './utils/pdfExport';
+import AuthGate from './components/AuthGate';
 
 const InputField = ({ label, value, onChange, placeholder, type = "text", maxLength }: any) => (
   <div className="space-y-2">
-    <label className="text-[9px] font-bold text-stone-600 uppercase tracking-[0.2em] block">{label}</label>
+    <label className="text-[9px] font-bold text-white uppercase tracking-[0.2em] block">{label}</label>
     <input
       type={type}
       maxLength={maxLength}
@@ -117,7 +118,7 @@ export default function App() {
             </div>
 
             <div className="space-y-4">
-              <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest block text-center">Date de Naissance</label>
+              <label className="text-[10px] font-bold text-white uppercase tracking-widest block text-center">Date de Naissance</label>
               <div className="grid grid-cols-3 gap-4">
                 <InputField label="Jour" value={identity.day} onChange={(v:any) => setIdentity({...identity, day: v})} placeholder="15" maxLength={2} />
                 <InputField label="Mois" value={identity.month} onChange={(v:any) => setIdentity({...identity, month: v})} placeholder="06" maxLength={2} />
@@ -305,30 +306,32 @@ export default function App() {
               <p className="mt-16 text-stone-600 text-[10px] tracking-[0.5em] uppercase font-bold animate-pulse">L'Oracle consulte les astres...</p>
             </div>
           ) : analysis && (
-            <>
-              <header className="text-center">
-                <h2 className="text-5xl font-serif text-white gold-glow mb-6 uppercase tracking-tighter">Analyse Complète</h2>
-                <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent mx-auto"></div>
-              </header>
+            <AuthGate>
+              <>
+                <header className="text-center">
+                  <h2 className="text-5xl font-serif text-white gold-glow mb-6 uppercase tracking-tighter">Analyse Complète</h2>
+                  <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent mx-auto"></div>
+                </header>
 
-              <div className="glass p-12 rounded-[3.5rem] gold-border relative">
-                <div
-                  className="text-xl text-stone-200 leading-relaxed font-serif"
-                  dangerouslySetInnerHTML={{ __html: formatAnalysis(analysis.analysis) }}
-                />
-              </div>
+                <div className="glass p-12 rounded-[3.5rem] gold-border relative">
+                  <div
+                    className="text-xl text-white leading-relaxed font-serif"
+                    dangerouslySetInnerHTML={{ __html: formatAnalysis(analysis.analysis) }}
+                  />
+                </div>
 
-              <div className="text-center pt-16 space-y-4">
-                <button
-                  onClick={() => exportMysticalAnalysisToPDF(analysis.analysis, profile)}
-                  className="px-10 py-4 bg-[#C5A059]/10 border-2 border-[#C5A059] text-[#C5A059] font-bold uppercase tracking-[0.3em] rounded-3xl hover:bg-[#C5A059] hover:text-black transition-all shadow-lg active:scale-95"
-                >
-                  📄 Télécharger PDF
-                </button>
-                <br />
-                <button onClick={() => setStep(AppStep.NEXUS)} className="px-20 py-6 bg-stone-100 text-black font-bold uppercase tracking-[0.4em] rounded-3xl hover:bg-white transition-all shadow-2xl active:scale-95">Retour au Nexus</button>
-              </div>
-            </>
+                <div className="text-center pt-16 space-y-4">
+                  <button
+                    onClick={() => exportMysticalAnalysisToPDF(analysis.analysis, profile)}
+                    className="px-10 py-4 bg-[#C5A059]/10 border-2 border-[#C5A059] text-[#C5A059] font-bold uppercase tracking-[0.3em] rounded-3xl hover:bg-[#C5A059] hover:text-black transition-all shadow-lg active:scale-95"
+                  >
+                    📄 Télécharger PDF
+                  </button>
+                  <br />
+                  <button onClick={() => setStep(AppStep.NEXUS)} className="px-20 py-6 bg-stone-100 text-black font-bold uppercase tracking-[0.4em] rounded-3xl hover:bg-white transition-all shadow-2xl active:scale-95">Retour au Nexus</button>
+                </div>
+              </>
+            </AuthGate>
           )}
         </div>
       )}

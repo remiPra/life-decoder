@@ -9,6 +9,7 @@ import ProfileForm from './ProfileForm';
 import DecisionTypeSelector from './DecisionTypeSelector';
 import DecisionCanvas from './DecisionCanvas';
 import ResultsView from './ResultsView';
+import AuthGate from './components/AuthGate';
 
 export default function App() {
   const [step, setStep] = useState<AppStep>(AppStep.WELCOME);
@@ -162,12 +163,14 @@ export default function App() {
           )}
 
           {result && !loading && !error && (
-            <ResultsView
-              result={result}
-              prenom={prenom}
-              onNewDecision={handleNewDecision}
-              onFeedback={handleFeedback}
-            />
+            <AuthGate>
+              <ResultsView
+                result={result}
+                prenom={prenom}
+                onNewDecision={handleNewDecision}
+                onFeedback={handleFeedback}
+              />
+            </AuthGate>
           )}
         </>
       )}
