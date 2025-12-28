@@ -1,153 +1,113 @@
-# 🧬 LIFE DECODER — Architecture de la Destinée
+# 🧭 LIFE DECODER
 
-> Une application de numérologie premium propulsée par l'IA Claude Opus 4.5 pour révéler le potentiel caché de vos utilisateurs.
+> Clarifie tes décisions importantes.
 
 ## 🎯 Qu'est-ce que Life Decoder ?
 
-Life Decoder est une plateforme web moderne qui combine **numérologie ancestrale** et **intelligence artificielle de pointe** pour offrir des analyses personnalisées ultra-détaillées.
+Life Decoder est un assistant IA qui t'aide à clarifier tes décisions importantes grâce à une analyse personnalisée et des actions concrètes.
 
 ### Le Concept
 
-Plutôt qu'un simple calculateur de numérologie, Life Decoder transforme les données de naissance en **insights profonds** sur :
-- La personnalité et les talents innés
-- La mission de vie et le potentiel caché
-- Les chemins de carrière optimaux
-- La compatibilité amoureuse
-- Les stratégies d'abondance financière
-- Le timing parfait pour les décisions importantes
+Tu as une décision difficile à prendre ? Life Decoder t'aide à :
+- Structurer ta réflexion
+- Analyser le timing de ta décision
+- Visualiser 3 scénarios possibles
+- Recevoir 3 actions concrètes à faire cette semaine
 
-## ✨ Fonctionnalités Principales
+## ✨ Comment ça marche ?
 
-### 🔮 Analyses d'Identité
-- **Life Decoder Blueprint** : Analyse complète de la personnalité
-- **Soul Purpose Finder** : Découverte de la mission de vie
-- **Expression Profile** : Cartographie des talents naturels
-- **Career Destiny Finder** : 3 meilleurs chemins de carrière
-- **Relationship Destiny Map** : Profil du partenaire idéal
-- **Wealth & Abundance Code** : Stratégie de prospérité personnalisée
-- **Thème Complet** : Vue exhaustive de tous les nombres
+### Flow simple en 5 étapes :
+1. **Profil** : Entre ton prénom et ta date de naissance
+2. **Type** : Choisis le domaine (Carrière, Projet, Relation)
+3. **Canvas** : Réponds à 4 questions sur ta situation
+4. **Validation** : Vérifie que tout est clair
+5. **Résultat** : Reçois ton analyse complète
 
-### ⏰ Oracle Temporel
-- **Decision Timing Oracle** : Meilleur moment pour agir
-- **Daily Alignment Guide** : Énergie du jour en temps réel
-- **Future Timeline Guide** : Roadmap des 5 prochaines années
-
-## 🎨 Design & UX
-
-- **Interface Premium** : Design dark élégant avec effets de verre et accents dorés
-- **Navigation Intuitive** : Système à 3 onglets (Débuter / Approfondir / Oracle)
-- **Guidage Intelligent** : Recommandations claires pour les nouveaux utilisateurs
-- **Expérience Fluide** : Animations subtiles et transitions douces
-- **Mobile-First** : Responsive design optimisé pour tous les écrans
+### Ce que tu reçois :
+- ✅ Une reformulation claire de ta situation
+- ✅ Une analyse du timing (Favorable / Neutre / Délicat)
+- ✅ 3 scénarios détaillés (avantages + vigilances)
+- ✅ 3 actions concrètes réalisables en 7 jours
 
 ## 🚀 Stack Technique
 
 - **Frontend** : React 19 + TypeScript + Vite
-- **Styling** : Tailwind CSS avec design system personnalisé
+- **Styling** : Tailwind CSS
 - **IA** : Claude Opus 4.5 via OpenRouter API
-- **Déploiement** : Vercel (optimisé pour production)
-- **Fonts** : Cinzel (serif) + Inter (sans-serif)
+- **Sécurité** : Vercel Serverless Function (clé API protégée)
+- **Déploiement** : Vercel
 
-## 📦 Installation & Déploiement
+## 🔒 Sécurité
 
-### Prérequis
-- Node.js (v18+)
-- Compte OpenRouter avec clé API
+La clé API OpenRouter est **protégée côté serveur** via une Vercel Serverless Function.
+Voir [SECURITY.md](SECURITY.md) pour les détails.
 
-### Installation Locale
+## 📦 Installation
 
 ```bash
-# 1. Cloner le projet
-git clone [votre-repo]
-cd life-decoder
-
-# 2. Installer les dépendances
+# Installer les dépendances
 npm install
 
-# 3. Configurer l'API
-# Créer un fichier .env.local avec :
-VITE_OPENROUTER_API_KEY=sk-or-v1-votre-clé-ici
+# Configurer la clé API (voir SECURITY.md)
+# Créer .env.local avec OPENROUTER_API_KEY
 
-# 4. Lancer en développement
+# Lancer en local avec Vercel Dev
+vercel dev
+
+# Ou lancer sans API (interface uniquement)
 npm run dev
-
-# 5. Ouvrir http://localhost:3000
 ```
 
-### Déploiement sur Vercel
+## 🧪 Déploiement
 
-1. Connectez votre repo GitHub à Vercel
-2. Ajoutez la variable d'environnement dans Settings > Environment Variables :
-   - `VITE_OPENROUTER_API_KEY` = votre clé API
-3. Déployez automatiquement à chaque push
+1. Push sur GitHub
+2. Connecter le repo sur Vercel
+3. Ajouter la variable d'environnement `OPENROUTER_API_KEY`
+4. Deploy
 
-## 💰 Modèle Business
+## 📖 Documentation
 
-### Potentiel de Monétisation
+- [SPECS_COMPLETE.md](SPECS_COMPLETE.md) - Spécifications complètes
+- [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md) - Guide d'implémentation
+- [SECURITY.md](SECURITY.md) - Guide sécurité
+- [QUICK_START.md](QUICK_START.md) - Démarrage rapide
 
-1. **Freemium** : 1 analyse gratuite, puis abonnement
-2. **Pay-per-Analysis** : 9,99€ par lecture approfondie
-3. **Abonnement Premium** : 19,99€/mois pour analyses illimitées
-4. **Pack Couple** : 29,99€ pour analyse de compatibilité
-5. **Consulting Pro** : 149€ pour session avec expert
+## 🎯 Produit
 
-### Marché Cible
+### Valeur
+**Avant** : "Je ne sais pas quoi faire"
+**Après** : "J'ai 3 scénarios clairs et 3 actions à faire cette semaine"
 
-- **Millennials & Gen Z** en quête de sens (25-40 ans)
-- **Entrepreneurs** cherchant le bon timing
-- **Coachs & Thérapeutes** comme outil complémentaire
-- **Couples** pour compatibilité amoureuse
+### Positionnement
+Un assistant IA de clarification décisionnelle, pas un oracle.
 
-### Avantages Compétitifs
+### Public cible
+- Entrepreneurs en phase de décision
+- Créatifs hésitant sur un projet
+- Personnes en transition (carrière, relation)
 
-✅ **IA de pointe** : Analyses 10x plus riches que les concurrents
-✅ **Design premium** : Expérience utilisateur supérieure
-✅ **Oracle temporel** : Fonctionnalité unique sur le marché
-✅ **Privacé** : Pas de stockage de données personnelles
+## 💡 Améliorations futures
 
-## 📊 KPIs à Suivre
+### Quick Wins
+- [ ] Export PDF des résultats
+- [ ] Partage social
+- [ ] Mode sombre
+- [ ] Historique (si compte user)
 
-- Taux de conversion (visiteur → analyse)
-- Temps moyen passé sur l'analyse
-- Taux de retour (utilisateurs récurrents)
-- NPS (Net Promoter Score)
-- Coût par acquisition (CPA)
+### Monétisation
+- [ ] Paywall après 1ère décision gratuite
+- [ ] Stripe Payment Links
+- [ ] Page Pricing
 
-## 🔐 Confidentialité
+### Analytics
+- [ ] Posthog / Mixpanel
+- [ ] Events tracking
+- [ ] Heatmaps
 
-- **Aucune base de données** : Calculs en temps réel uniquement
-- **Pas de tracking** : Respect total de la vie privée
-- **RGPD compliant** : Données jamais stockées
+## 📄 Licence
 
-## 🌟 Roadmap
-
-### Version 1.0 (Actuelle)
-- [x] 10 types d'analyses
-- [x] Oracle temporel
-- [x] Design premium
-- [x] Navigation guidée
-
-### Version 2.0 (À venir)
-- [ ] Système de comptes utilisateur
-- [ ] Historique des analyses
-- [ ] Export PDF des rapports
-- [ ] Partage sur réseaux sociaux
-- [ ] Analyse de compatibilité (duo)
-- [ ] Mode clair/sombre
-- [ ] Multilingue (EN, ES, IT)
-
-### Version 3.0 (Vision)
-- [ ] Marketplace d'experts numérologie
-- [ ] Sessions vidéo avec consultants
-- [ ] Programme d'affiliation
-- [ ] Application mobile native
-
-## 📞 Support & Contact
-
-Pour toute question technique ou commerciale, contactez l'équipe de développement.
+MIT
 
 ---
 
-**Built with ❤️ using Claude Opus 4.5 — L'IA la plus avancée**
-
-*Transformez la curiosité en insights. Transformez les insights en action.*
+**Life Decoder** - Clarifie tes décisions importantes.

@@ -62,7 +62,7 @@ export default function ResultsView({ result, prenom, onNewDecision, onFeedback 
 
       {/* 2. Score de Timing */}
       <section className="glass p-10 rounded-[2.5rem] border-2 border-[#C5A059]/30">
-        <h3 className="text-sm uppercase tracking-[0.3em] text-[#C5A059] mb-6 text-center">Timing Numérologique</h3>
+        <h3 className="text-sm uppercase tracking-[0.3em] text-[#C5A059] mb-6 text-center">Analyse du Timing</h3>
         <div className="flex flex-col md:flex-row items-center gap-8">
           <div className="flex-shrink-0">
             <ScoreIndicator score={result.timing.score} />

@@ -11,11 +11,10 @@ export default function Welcome({ onStart }: WelcomeProps) {
         LIFE DECODER
       </h1>
       <p className="text-3xl font-serif text-[#C5A059] mb-12">
-        Prends de meilleures décisions, au bon moment.
+        Clarifie tes décisions importantes.
       </p>
       <p className="text-xl text-stone-300 mb-16 leading-relaxed max-w-2xl mx-auto">
-        Life Decoder combine numérologie et intelligence artificielle
-        pour t'aider à voir plus clair dans tes choix importants.
+        Life Decoder t'aide à clarifier une décision importante grâce à une analyse personnalisée et des actions concrètes.
       </p>
       <button
         onClick={onStart}
