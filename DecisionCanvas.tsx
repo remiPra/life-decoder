@@ -31,18 +31,29 @@ export default function DecisionCanvas({ decisionType, onComplete, onBack }: Dec
   }, [step]);
 
   const handleNext = () => {
+    console.log('[DecisionCanvas] handleNext called, current step:', step);
     if (step === 'situation' && situation.trim()) {
+      console.log('[DecisionCanvas] Moving to decision');
       setStep('decision');
     } else if (step === 'decision' && decision.trim()) {
+      console.log('[DecisionCanvas] Moving to echeance');
       setStep('echeance');
     } else if (step === 'echeance') {
+      console.log('[DecisionCanvas] Moving to importance');
       setStep('importance');
     } else if (step === 'importance') {
+      console.log('[DecisionCanvas] Moving to validation');
       setStep('validation');
     }
   };
 
   const handleValidate = () => {
+    console.log('[DecisionCanvas] handleValidate called with data:', {
+      situation: situation.trim(),
+      decision: decision.trim(),
+      echeance: echeance || undefined,
+      importance
+    });
     onComplete({
       situation: situation.trim(),
       decision: decision.trim(),
@@ -257,7 +268,7 @@ export default function DecisionCanvas({ decisionType, onComplete, onBack }: Dec
         )}
 
         {/* Question 4 : Importance */}
-        {step === 'importance' || step === 'validation' && (
+        {(step === 'importance' || step === 'validation') && (
           <>
             <div className="flex gap-4">
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#C5A059]/20 flex items-center justify-center">

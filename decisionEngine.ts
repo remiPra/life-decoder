@@ -138,11 +138,14 @@ async function parseAndValidateResult(content: string): Promise<any> {
 }
 
 export async function analyzeDecision(input: DecisionInput): Promise<Omit<DecisionResult, 'id' | 'createdAt' | 'feedback'>> {
+  console.log('[DecisionEngine] Starting analysis with input:', input);
   const prompt = fillPromptTemplate(DECISION_ENGINE_PROMPT, input);
+  console.log('[DecisionEngine] Prompt generated, length:', prompt.length);
   const maxRetries = 1; // Retry 1 fois si échec
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
+      console.log(`[DecisionEngine] Attempt ${attempt + 1}/${maxRetries + 1}`);
       // 🔒 SÉCURISÉ : Appel via Vercel Serverless Function avec timeout 30s
       const response = await fetchWithTimeout('/api/analyze', {
         method: 'POST',
@@ -151,6 +154,8 @@ export async function analyzeDecision(input: DecisionInput): Promise<Omit<Decisi
         },
         body: JSON.stringify({ prompt })
       }, 30000);
+
+      console.log('[DecisionEngine] API response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json();
