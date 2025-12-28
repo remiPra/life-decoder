@@ -32,13 +32,14 @@ export default function App() {
   const [analysis, setAnalysis] = useState<AIResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<'start' | 'identity' | 'temporal'>('start');
 
   const startInitiation = (e: React.FormEvent) => {
     e.preventDefault();
-    const { firstName, lastName, day, month, year } = identity;
-    if (!firstName || !lastName || !day || !month || !year) return;
+    const { firstName, day, month, year } = identity;
+    if (!firstName || !day || !month || !year) return;
     const birthDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    const prof = calculateFullProfile(firstName, lastName, birthDate);
+    const prof = calculateFullProfile(firstName, '', birthDate);
     setProfile(prof);
     setStep(AppStep.NEXUS);
   };
@@ -82,14 +83,17 @@ export default function App() {
       .replace(/$/, '</p>');
   };
 
-  const analyses = [
-    { id: 'life-decoder', title: 'Life Decoder Blueprint', icon: '🧬', sub: 'Analyse complète de ta personnalité profonde' },
-    { id: 'soul-purpose', title: 'Soul Purpose Finder', icon: '🔮', sub: 'Découvre ta mission de vie' },
+  const starterAnalyses = [
+    { id: 'life-decoder', title: 'Life Decoder Blueprint', icon: '🧬', sub: 'Commence ici : Analyse complète de ta personnalité', recommended: true },
+    { id: 'soul-purpose', title: 'Soul Purpose Finder', icon: '🔮', sub: 'Ta mission de vie et ton potentiel' },
+    { id: 'complete-chart', title: 'Thème Complet', icon: '📊', sub: 'Vue exhaustive de tous tes nombres' },
+  ];
+
+  const identityAnalyses = [
     { id: 'expression-profile', title: 'Expression Profile', icon: '🎯', sub: 'Talents innés et capacités naturelles' },
     { id: 'career-destiny', title: 'Career Destiny Finder', icon: '💼', sub: 'Les 3 chemins de carrière optimaux' },
     { id: 'relationship-map', title: 'Relationship Destiny Map', icon: '💕', sub: 'Ton partenaire idéal et karma amoureux' },
     { id: 'wealth-code', title: 'Wealth & Abundance Code', icon: '💰', sub: 'Stratégie pour attirer l\'abondance' },
-    { id: 'complete-chart', title: 'Thème Complet', icon: '📊', sub: 'Analyse EXHAUSTIVE de tous tes nombres' },
   ];
 
   const temporalAnalyses = [
@@ -109,9 +113,6 @@ export default function App() {
           <form onSubmit={startInitiation} className="space-y-10 glass p-10 md:p-14 rounded-[3rem] gold-border text-left">
             <div>
               <InputField label="Prénom" value={identity.firstName} onChange={(v:any) => setIdentity({...identity, firstName: v})} placeholder="Marie" />
-            </div>
-            <div>
-              <InputField label="Nom" value={identity.lastName} onChange={(v:any) => setIdentity({...identity, lastName: v})} placeholder="Dupont" />
             </div>
 
             <div className="space-y-4">
@@ -134,101 +135,156 @@ export default function App() {
         <div className="max-w-6xl mx-auto fade-in">
           <header className="text-center mb-16">
               <p className="text-[#C5A059] text-[10px] tracking-[0.6em] uppercase mb-4">Système Life Decoder Actif</p>
-              <h2 className="text-6xl font-serif text-white uppercase tracking-tighter gold-glow">{profile.fullName}</h2>
+              <h2 className="text-6xl font-serif text-white uppercase tracking-tighter gold-glow mb-3">{profile.firstName}</h2>
+              <p className="text-stone-500 text-sm">Choisis l'analyse qui résonne avec toi</p>
           </header>
 
-          {/* Numbers Display */}
-          <div className="mb-20">
-            <h3 className="text-[10px] uppercase tracking-[0.6em] text-stone-600 mb-10 text-center">Les Nombres Sacrés</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-              {[
-                { label: 'Chemin de Vie', val: profile.lifePath },
-                { label: 'Expression', val: profile.expression },
-                { label: 'Âme', val: profile.soulUrge },
-                { label: 'Personnalité', val: profile.personality },
-                { label: 'Force Cachée', val: profile.hiddenPower },
-                { label: 'Réalisation', val: profile.realization },
-                { label: 'Année Perso', val: profile.personalYear },
-              ].map((n, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSelectedPiece(n.val)}
-                  className={`glass p-6 rounded-3xl gold-border text-center transition-all group relative border-t-2 ${selectedPiece === n.val ? 'bg-stone-900 border-[#C5A059]' : 'hover:border-[#C5A059]/40'}`}
-                >
-                  <span className="text-4xl font-serif text-[#C5A059] block mb-2 gold-glow">{n.val}</span>
-                  <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-stone-500 block h-8 flex items-center justify-center leading-tight">{n.label}</span>
-                </button>
-              ))}
+          {/* Navigation Tabs */}
+          <div className="mb-12">
+            <div className="flex justify-center gap-4 mb-12">
+              <button
+                onClick={() => setViewMode('start')}
+                className={`px-8 py-4 rounded-2xl font-serif uppercase tracking-[0.3em] text-sm transition-all ${
+                  viewMode === 'start'
+                    ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20'
+                    : 'glass gold-border text-stone-400 hover:text-white'
+                }`}
+              >
+                ✦ Débuter
+              </button>
+              <button
+                onClick={() => setViewMode('identity')}
+                className={`px-8 py-4 rounded-2xl font-serif uppercase tracking-[0.3em] text-sm transition-all ${
+                  viewMode === 'identity'
+                    ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20'
+                    : 'glass gold-border text-stone-400 hover:text-white'
+                }`}
+              >
+                Analyses Approfondies
+              </button>
+              <button
+                onClick={() => setViewMode('temporal')}
+                className={`px-8 py-4 rounded-2xl font-serif uppercase tracking-[0.3em] text-sm transition-all ${
+                  viewMode === 'temporal'
+                    ? 'bg-[#2dd4bf] text-black shadow-lg shadow-[#2dd4bf]/20'
+                    : 'glass border border-[#2dd4bf]/30 text-stone-400 hover:text-white'
+                }`}
+              >
+                Oracle Temporel
+              </button>
             </div>
 
-            {selectedPiece && ARCHETYPES[selectedPiece] && (
-              <div className="mt-8 glass p-10 rounded-[2.5rem] gold-border fade-in border-l-4 border-l-[#C5A059]">
-                <div className="flex justify-between items-start mb-4">
-                  <h4 className="text-2xl font-serif text-[#C5A059]">{ARCHETYPES[selectedPiece].title} ({selectedPiece})</h4>
-                  <button onClick={() => setSelectedPiece(null)} className="text-stone-600 hover:text-white text-xs uppercase tracking-widest">Fermer</button>
+            {/* START VIEW */}
+            {viewMode === 'start' && (
+              <div className="fade-in space-y-8">
+                <div className="text-center mb-10 glass p-8 rounded-[2.5rem] gold-border">
+                  <h3 className="text-2xl font-serif text-[#C5A059] mb-4">Par où commencer ?</h3>
+                  <p className="text-stone-400 leading-relaxed max-w-2xl mx-auto">
+                    Si c'est ta première fois, nous te recommandons de commencer par le <strong className="text-white">Life Decoder Blueprint</strong> pour découvrir l'essence de ton identité numérologique.
+                  </p>
                 </div>
-                <p className="text-stone-300 font-serif italic text-lg leading-relaxed">
-                  "{ARCHETYPES[selectedPiece].concrete}"
-                </p>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {starterAnalyses.map((m: any) => (
+                    <button
+                      key={m.id}
+                      onClick={() => runAnalysisHandler(m.id as AnalysisModule)}
+                      className={`glass p-10 rounded-[2.5rem] text-left transition-all flex flex-col justify-between h-72 group relative overflow-hidden shadow-xl ${
+                        m.recommended
+                          ? 'border-2 border-[#C5A059] hover:border-[#D4AF37]'
+                          : 'gold-border hover:border-[#C5A059]/60'
+                      }`}
+                    >
+                      {m.recommended && (
+                        <div className="absolute top-4 right-4 bg-[#C5A059] text-black text-[8px] px-3 py-1 rounded-full uppercase tracking-wider font-bold">
+                          Recommandé
+                        </div>
+                      )}
+                      <div className="absolute -right-4 -top-4 text-8xl opacity-[0.03] group-hover:opacity-[0.08] transition-opacity font-serif">{m.icon}</div>
+                      <span className="text-4xl opacity-40 group-hover:opacity-100 transition-opacity text-[#C5A059]">{m.icon}</span>
+                      <div>
+                        <span className="text-2xl font-serif text-white block mb-3">{m.title}</span>
+                        <span className="text-[10px] text-stone-500 uppercase tracking-widest leading-relaxed">{m.sub}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
-          </div>
 
-          {/* Timing Input */}
-          <div className="mb-20 glass p-10 rounded-[3rem] gold-border">
-            <h3 className="text-[10px] uppercase tracking-[0.6em] text-[#2dd4bf] mb-10 text-center">Oracle Temporel (Optionnel)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <InputField label="Date question" type="date" value={timing.questionDate} onChange={(v:any) => setTiming({...timing, questionDate: v})} />
-              <InputField label="Heure question" type="time" value={timing.questionTime} onChange={(v:any) => setTiming({...timing, questionTime: v})} />
-              <InputField label="Date action" type="date" value={timing.actionDate} onChange={(v:any) => setTiming({...timing, actionDate: v})} />
-              <InputField label="Heure action" type="time" value={timing.actionTime} onChange={(v:any) => setTiming({...timing, actionTime: v})} />
-            </div>
-            <select
-              className="w-full bg-stone-900/30 border border-stone-800 p-4 rounded-xl text-white mb-4"
-              value={timing.questionType}
-              onChange={e => setTiming({...timing, questionType: e.target.value})}
-            >
-              <option value="">Type de question...</option>
-              <option value="decision">🎯 Prise de décision</option>
-              <option value="project">🚀 Lancement de projet</option>
-              <option value="love">💕 Amour / Relation</option>
-              <option value="career">💼 Carrière / Travail</option>
-              <option value="money">💰 Argent / Investissement</option>
-            </select>
-            <textarea
-              className="w-full bg-stone-900/30 border border-stone-800 p-4 rounded-xl text-white min-h-[80px]"
-              placeholder="Contexte de ta question..."
-              value={timing.context}
-              onChange={e => setTiming({...timing, context: e.target.value})}
-            />
-          </div>
-
-          <h3 className="text-[10px] uppercase tracking-[0.6em] text-stone-600 mb-10 text-center">Analyses d'Identité</h3>
-          <div className="grid md:grid-cols-3 gap-8 mb-20">
-            {analyses.map((m) => (
-              <button key={m.id} onClick={() => runAnalysisHandler(m.id as AnalysisModule)} className="glass p-10 rounded-[2.5rem] gold-border text-left hover:border-[#C5A059]/60 transition-all flex flex-col justify-between h-64 group relative overflow-hidden shadow-xl hover:shadow-[#C5A059]/5">
-                <div className="absolute -right-4 -top-4 text-8xl opacity-[0.03] group-hover:opacity-[0.08] transition-opacity font-serif">{m.icon}</div>
-                <span className="text-3xl opacity-40 group-hover:opacity-100 transition-opacity text-[#C5A059]">{m.icon}</span>
-                <div>
-                  <span className="text-2xl font-serif text-white block mb-2">{m.title}</span>
-                  <span className="text-[10px] text-stone-500 uppercase tracking-widest">{m.sub}</span>
+            {/* IDENTITY VIEW */}
+            {viewMode === 'identity' && (
+              <div className="fade-in">
+                <h3 className="text-[10px] uppercase tracking-[0.6em] text-stone-600 mb-8 text-center">Analyses Spécialisées d'Identité</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {identityAnalyses.map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => runAnalysisHandler(m.id as AnalysisModule)}
+                      className="glass p-10 rounded-[2.5rem] gold-border text-left hover:border-[#C5A059]/60 transition-all flex flex-col justify-between h-64 group relative overflow-hidden shadow-xl hover:shadow-[#C5A059]/5"
+                    >
+                      <div className="absolute -right-4 -top-4 text-8xl opacity-[0.03] group-hover:opacity-[0.08] transition-opacity font-serif">{m.icon}</div>
+                      <span className="text-3xl opacity-40 group-hover:opacity-100 transition-opacity text-[#C5A059]">{m.icon}</span>
+                      <div>
+                        <span className="text-2xl font-serif text-white block mb-2">{m.title}</span>
+                        <span className="text-[10px] text-stone-500 uppercase tracking-widest">{m.sub}</span>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </button>
-            ))}
-          </div>
+              </div>
+            )}
 
-          <h3 className="text-[10px] uppercase tracking-[0.6em] text-[#2dd4bf] mb-10 text-center">Analyses Temporelles</h3>
-          <div className="grid md:grid-cols-3 gap-8">
-            {temporalAnalyses.map((m) => (
-              <button key={m.id} onClick={() => runAnalysisHandler(m.id as AnalysisModule)} className="glass p-10 rounded-[2.5rem] border border-[#2dd4bf]/30 text-left hover:border-[#2dd4bf]/60 transition-all flex flex-col justify-between h-64 group relative overflow-hidden shadow-xl hover:shadow-[#2dd4bf]/5">
-                <div className="absolute -right-4 -top-4 text-8xl opacity-[0.03] group-hover:opacity-[0.08] transition-opacity font-serif">{m.icon}</div>
-                <span className="text-3xl opacity-40 group-hover:opacity-100 transition-opacity text-[#2dd4bf]">{m.icon}</span>
-                <div>
-                  <span className="text-2xl font-serif text-white block mb-2">{m.title}</span>
-                  <span className="text-[10px] text-stone-500 uppercase tracking-widest">{m.sub}</span>
+            {/* TEMPORAL VIEW */}
+            {viewMode === 'temporal' && (
+              <div className="fade-in space-y-8">
+                {/* Timing Input */}
+                <div className="glass p-10 rounded-[3rem] border border-[#2dd4bf]/30">
+                  <h3 className="text-[10px] uppercase tracking-[0.6em] text-[#2dd4bf] mb-8 text-center">Configure ton Oracle Temporel</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <InputField label="Date question" type="date" value={timing.questionDate} onChange={(v:any) => setTiming({...timing, questionDate: v})} />
+                    <InputField label="Heure question" type="time" value={timing.questionTime} onChange={(v:any) => setTiming({...timing, questionTime: v})} />
+                    <InputField label="Date action (optionnel)" type="date" value={timing.actionDate} onChange={(v:any) => setTiming({...timing, actionDate: v})} />
+                    <InputField label="Heure action (optionnel)" type="time" value={timing.actionTime} onChange={(v:any) => setTiming({...timing, actionTime: v})} />
+                  </div>
+                  <select
+                    className="w-full bg-stone-900/30 border border-stone-800 p-4 rounded-xl text-white mb-4"
+                    value={timing.questionType}
+                    onChange={e => setTiming({...timing, questionType: e.target.value})}
+                  >
+                    <option value="">Type de question...</option>
+                    <option value="decision">🎯 Prise de décision</option>
+                    <option value="project">🚀 Lancement de projet</option>
+                    <option value="love">💕 Amour / Relation</option>
+                    <option value="career">💼 Carrière / Travail</option>
+                    <option value="money">💰 Argent / Investissement</option>
+                  </select>
+                  <textarea
+                    className="w-full bg-stone-900/30 border border-stone-800 p-4 rounded-xl text-white min-h-[80px]"
+                    placeholder="Contexte de ta question..."
+                    value={timing.context}
+                    onChange={e => setTiming({...timing, context: e.target.value})}
+                  />
                 </div>
-              </button>
-            ))}
+
+                <h3 className="text-[10px] uppercase tracking-[0.6em] text-[#2dd4bf] mb-8 text-center">Choisis ton Analyse Temporelle</h3>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {temporalAnalyses.map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => runAnalysisHandler(m.id as AnalysisModule)}
+                      className="glass p-10 rounded-[2.5rem] border border-[#2dd4bf]/30 text-left hover:border-[#2dd4bf]/60 transition-all flex flex-col justify-between h-64 group relative overflow-hidden shadow-xl hover:shadow-[#2dd4bf]/5"
+                    >
+                      <div className="absolute -right-4 -top-4 text-8xl opacity-[0.03] group-hover:opacity-[0.08] transition-opacity font-serif">{m.icon}</div>
+                      <span className="text-3xl opacity-40 group-hover:opacity-100 transition-opacity text-[#2dd4bf]">{m.icon}</span>
+                      <div>
+                        <span className="text-2xl font-serif text-white block mb-2">{m.title}</span>
+                        <span className="text-[10px] text-stone-500 uppercase tracking-widest">{m.sub}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
