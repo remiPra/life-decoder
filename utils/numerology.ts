@@ -35,21 +35,67 @@ const getNameValue = (name: string, filter?: (char: string) => boolean): number 
   return sum;
 };
 
-export const calculateFullProfile = (firstName: string, dob: string) => {
-  const full = firstName;
+const findHiddenPower = (name: string): number => {
+  const clean = name.toLowerCase().replace(/[^a-z]/g, '');
+  const counts: Record<number, number> = {};
+
+  clean.split('').forEach(char => {
+    const val = pythagoreanMap[char];
+    if (val) counts[val] = (counts[val] || 0) + 1;
+  });
+
+  let maxCount = 0;
+  let powerNumber = 1;
+
+  for (const [num, count] of Object.entries(counts)) {
+    if (count > maxCount) {
+      maxCount = count;
+      powerNumber = parseInt(num);
+    }
+  }
+
+  return powerNumber;
+};
+
+export const calculateFullProfile = (firstName: string, lastName: string, dob: string) => {
+  const full = `${firstName} ${lastName}`.trim();
   const [y, m, d] = dob.split('-').map(Number);
-  
-  const lifePath = reduceToRoot(reduceToRoot(y) + reduceToRoot(m) + reduceToRoot(d));
+
+  const lifePath = reduceToRoot(reduceToRoot(y, false) + reduceToRoot(m, false) + reduceToRoot(d, false));
   const expression = reduceToRoot(getNameValue(full));
   const soulUrge = reduceToRoot(getNameValue(full, c => vowels.includes(c)));
   const personality = reduceToRoot(getNameValue(full, c => !vowels.includes(c)));
   const realization = reduceToRoot(lifePath + expression);
-  const hiddenForce = reduceToRoot(expression + soulUrge);
-  
-  const currentYear = new Date().getFullYear();
-  const personalYear = reduceToRoot(reduceToRoot(currentYear) + reduceToRoot(m) + reduceToRoot(d));
+  const hiddenPower = findHiddenPower(full);
 
-  return { lifePath, expression, soulUrge, personality, realization, hiddenForce, personalYear, birthMonth: m, birthDay: d };
+  const currentYear = new Date().getFullYear();
+  const personalYear = reduceToRoot(reduceToRoot(currentYear, false) + reduceToRoot(m, false) + reduceToRoot(d, false));
+
+  return {
+    firstName,
+    lastName,
+    fullName: full,
+    lifePath,
+    expression,
+    soulUrge,
+    personality,
+    realization,
+    hiddenPower,
+    personalYear,
+    birthMonth: m,
+    birthDay: d,
+    birthYear: y
+  };
+};
+
+export const calculateDayNumber = (dateStr: string): number => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return reduceToRoot(day + month + year, false);
+};
+
+export const calculateHourNumber = (timeStr: string): number => {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return reduceToRoot(hours + (minutes || 0), false);
 };
 
 export const calculateMomentVibrations = (birthProfile: any, actionDate: string, actionTime: string) => {
@@ -57,13 +103,13 @@ export const calculateMomentVibrations = (birthProfile: any, actionDate: string,
   const [ah, amin] = actionTime.split(':').map(Number);
 
   // Cycles personnels pour la date cible
-  const targetPersonalYear = reduceToRoot(reduceToRoot(ay) + reduceToRoot(birthProfile.birthMonth) + reduceToRoot(birthProfile.birthDay));
-  const targetPersonalMonth = reduceToRoot(targetPersonalYear + am);
-  const targetPersonalDay = reduceToRoot(targetPersonalMonth + ad);
+  const targetPersonalYear = reduceToRoot(reduceToRoot(ay, false) + reduceToRoot(birthProfile.birthMonth, false) + reduceToRoot(birthProfile.birthDay, false));
+  const targetPersonalMonth = reduceToRoot(targetPersonalYear + am, false);
+  const targetPersonalDay = reduceToRoot(targetPersonalMonth + ad, false);
 
   // Vibrations intrinsèques du moment
-  const actionDayNumber = reduceToRoot(ay + am + ad);
-  const actionHourNumber = reduceToRoot(ah + (amin || 0));
+  const actionDayNumber = reduceToRoot(ay + am + ad, false);
+  const actionHourNumber = reduceToRoot(ah + (amin || 0), false);
 
   return {
     personalYear: targetPersonalYear,

@@ -1,41 +1,55 @@
 
-export type AnalysisModule = 
-  | 'BLUEPRINT' | 'SOUL_PURPOSE' | 'EXPRESSION' | 'CAREER' 
-  | 'RELATIONSHIP' | 'WEALTH' | 'TIMING_ORACLE' | 'TIMELINE_5Y';
+export type AnalysisModule =
+  | 'life-decoder' | 'soul-purpose' | 'expression-profile' | 'career-destiny'
+  | 'relationship-map' | 'wealth-code' | 'complete-chart'
+  | 'decision-oracle' | 'daily-alignment' | 'future-timeline';
 
 export interface UserIdentity {
   firstName: string;
-  birthDate: string;
+  lastName: string;
+  birthDay: number;
+  birthMonth: number;
+  birthYear: number;
 }
 
 export interface TimingContext {
-  actionDate: string;
-  actionTime: string;
-  category: 'DECISION' | 'LOVE' | 'MONEY' | 'CAREER' | 'SPIRITUAL';
-  context: string;
+  questionDate?: string;
+  questionTime?: string;
+  actionDate?: string;
+  actionTime?: string;
+  questionType?: string;
+  context?: string;
 }
 
 export interface NumerologyProfile {
+  firstName: string;
+  lastName: string;
+  fullName: string;
   lifePath: number;
   expression: number;
   soulUrge: number;
   personality: number;
-  hiddenForce: number;
   realization: number;
+  hiddenPower: number;
   personalYear: number;
+  birthMonth: number;
+  birthDay: number;
+  birthYear: number;
+}
+
+export interface TemporalNumbers {
+  questionDay?: number;
+  questionHour?: number;
+  actionDay?: number;
+  actionHour?: number;
 }
 
 export interface AIResponse {
-  title: string;
-  sections: { subtitle: string; content: string }[];
-  strategicAdvice: string[];
-  timingVerdict?: 'GO' | 'WAIT' | 'ADJUST';
-  anchor: string;
+  analysis: string;
 }
 
 export enum AppStep {
   INITIATION = 'INITIATION',
   NEXUS = 'NEXUS',
-  TIMING_SETUP = 'TIMING_SETUP',
   CONSULTATION = 'CONSULTATION'
 }
