@@ -57,6 +57,40 @@ export default function DecisionCanvas({ decisionType, onComplete, onBack }: Dec
     relationship: 'relation'
   };
 
+  // Exemples cliquables par type de décision
+  const examples = {
+    career: {
+      situation: [
+        "Je suis dans mon poste actuel depuis 3 ans, stable mais peu challengeant",
+        "Je travaille dans une grande entreprise mais j'ai une opportunité en startup"
+      ],
+      decision: [
+        "Accepter une offre avec +20% de salaire mais plus de responsabilités",
+        "Demander une promotion ou chercher ailleurs"
+      ]
+    },
+    project: {
+      situation: [
+        "J'ai une idée de side-project depuis 6 mois mais je n'ai jamais lancé",
+        "Mon projet avance mais je ne sais pas si je dois continuer ou pivoter"
+      ],
+      decision: [
+        "Investir 10k€ pour lancer mon projet ou attendre",
+        "Passer à temps plein sur mon projet ou garder mon job"
+      ]
+    },
+    relationship: {
+      situation: [
+        "Je suis en couple depuis 2 ans, ça va bien mais je doute parfois",
+        "J'hésite entre deux personnes qui me plaisent vraiment"
+      ],
+      decision: [
+        "Emménager avec mon/ma partenaire ou attendre",
+        "Faire le premier pas ou laisser venir"
+      ]
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto mt-8 fade-in px-6 pb-32">
       <button
@@ -88,6 +122,18 @@ export default function DecisionCanvas({ decisionType, onComplete, onBack }: Dec
           <div className="glass p-6 rounded-2xl rounded-tl-none max-w-lg">
             <p className="text-white font-medium mb-2">Décris ta situation actuelle en quelques mots.</p>
             <p className="text-stone-500 text-sm">Où en es-tu aujourd'hui ?</p>
+            <div className="mt-3 space-y-2">
+              <p className="text-stone-600 text-xs uppercase tracking-wider">Exemples :</p>
+              {examples[decisionType].situation.map((example, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSituation(example)}
+                  className="block w-full text-left text-xs text-stone-400 hover:text-[#C5A059] transition-colors py-1.5 px-3 rounded-lg hover:bg-stone-800/50"
+                >
+                  💡 {example}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -129,6 +175,18 @@ export default function DecisionCanvas({ decisionType, onComplete, onBack }: Dec
               <div className="glass p-6 rounded-2xl rounded-tl-none max-w-lg">
                 <p className="text-white font-medium mb-2">Quelle décision hésites-tu à prendre exactement ?</p>
                 <p className="text-stone-500 text-sm">Sois le plus précis possible.</p>
+                <div className="mt-3 space-y-2">
+                  <p className="text-stone-600 text-xs uppercase tracking-wider">Exemples :</p>
+                  {examples[decisionType].decision.map((example, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setDecision(example)}
+                      className="block w-full text-left text-xs text-stone-400 hover:text-[#C5A059] transition-colors py-1.5 px-3 rounded-lg hover:bg-stone-800/50"
+                    >
+                      💡 {example}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

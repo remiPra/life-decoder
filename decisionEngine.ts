@@ -101,45 +101,90 @@ function fillPromptTemplate(template: string, input: DecisionInput): string {
     .replace('{{importance}}', input.importance.toString());
 }
 
-export async function analyzeDecision(input: DecisionInput): Promise<Omit<DecisionResult, 'id' | 'createdAt' | 'feedback'>> {
-  const prompt = fillPromptTemplate(DECISION_ENGINE_PROMPT, input);
+async function fetchWithTimeout(url: string, options: RequestInit, timeout: number = 30000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    // 🔒 SÉCURISÉ : Appel via Vercel Serverless Function
-    // La clé API reste côté serveur, jamais exposée au navigateur
-    const response = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ prompt })
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `API Error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content || '{}';
-
-    // Nettoyer le JSON si nécessaire (enlever markdown code blocks)
-    const cleanContent = content
-      .replace(/```json\n?/g, '')
-      .replace(/```\n?/g, '')
-      .trim();
-
-    const result = JSON.parse(cleanContent);
-
-    // Validation basique
-    if (!result.reformulation || !result.timing || !result.scenarios || !result.actions) {
-      throw new Error('Invalid AI response format');
-    }
-
-    return result;
-
+    clearTimeout(timeoutId);
+    return response;
   } catch (error) {
-    console.error('Decision Engine Error:', error);
-    throw new Error('Impossible d\'analyser ta décision pour le moment. Réessaie dans quelques instants.');
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Timeout: L\'analyse prend trop de temps. Réessaie.');
+    }
+    throw error;
   }
+}
+
+async function parseAndValidateResult(content: string): Promise<any> {
+  // Nettoyer le JSON si nécessaire (enlever markdown code blocks)
+  const cleanContent = content
+    .replace(/```json\n?/g, '')
+    .replace(/```\n?/g, '')
+    .trim();
+
+  const result = JSON.parse(cleanContent);
+
+  // Validation basique
+  if (!result.reformulation || !result.timing || !result.scenarios || !result.actions) {
+    throw new Error('Invalid AI response format');
+  }
+
+  return result;
+}
+
+export async function analyzeDecision(input: DecisionInput): Promise<Omit<DecisionResult, 'id' | 'createdAt' | 'feedback'>> {
+  const prompt = fillPromptTemplate(DECISION_ENGINE_PROMPT, input);
+  const maxRetries = 1; // Retry 1 fois si échec
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      // 🔒 SÉCURISÉ : Appel via Vercel Serverless Function avec timeout 30s
+      const response = await fetchWithTimeout('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt })
+      }, 30000);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0].message.content || '{}';
+
+      // Parser et valider le résultat
+      const result = await parseAndValidateResult(content);
+
+      // ✅ Succès
+      return result;
+
+    } catch (error) {
+      const isLastAttempt = attempt === maxRetries;
+
+      // Si JSON invalide et pas le dernier essai → retry
+      if (error instanceof SyntaxError && !isLastAttempt) {
+        console.warn(`Attempt ${attempt + 1} failed (JSON parse error), retrying...`);
+        continue;
+      }
+
+      // Si timeout ou dernière tentative → throw
+      console.error('Decision Engine Error:', error);
+
+      if (isLastAttempt) {
+        throw new Error('Impossible d\'analyser ta décision pour le moment. Réessaie dans quelques instants.');
+      }
+    }
+  }
+
+  // Fallback (ne devrait jamais arriver)
+  throw new Error('Erreur inattendue lors de l\'analyse.');
 }

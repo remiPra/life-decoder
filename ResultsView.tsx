@@ -26,12 +26,21 @@ function ScoreIndicator({ score }: { score: TimingScore }) {
 
 export default function ResultsView({ result, prenom, onNewDecision, onFeedback }: ResultsViewProps) {
   const [feedbackGiven, setFeedbackGiven] = React.useState(false);
+  const [completedActions, setCompletedActions] = React.useState<number[]>([]);
 
   const handleFeedback = (feedback: 'positive' | 'neutral' | 'negative') => {
     setFeedbackGiven(true);
     if (onFeedback) {
       onFeedback(feedback);
     }
+  };
+
+  const toggleAction = (numero: number) => {
+    setCompletedActions(prev =>
+      prev.includes(numero)
+        ? prev.filter(n => n !== numero)
+        : [...prev, numero]
+    );
   };
 
   return (
@@ -105,20 +114,49 @@ export default function ResultsView({ result, prenom, onNewDecision, onFeedback 
       {/* 4. Micro-Actions (LE PLUS IMPORTANT) */}
       <section className="glass p-10 rounded-[2.5rem] border-2 border-[#C5A059]/50">
         <h3 className="text-sm uppercase tracking-[0.3em] text-[#C5A059] mb-2 text-center">Actions Concrètes</h3>
-        <p className="text-stone-400 text-center mb-8">3 choses à faire cette semaine</p>
+        <p className="text-stone-400 text-center mb-2">3 choses à faire cette semaine</p>
+        <p className="text-stone-600 text-center text-xs mb-8">✓ Coche les actions au fur et à mesure</p>
         <div className="space-y-4">
-          {result.actions.map((action) => (
-            <div key={action.numero} className="flex gap-4 items-start p-6 bg-stone-900/30 rounded-2xl border border-stone-800 hover:border-[#C5A059]/30 transition-all">
-              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#C5A059] flex items-center justify-center">
-                <span className="text-black font-bold text-lg">{action.numero}</span>
-              </div>
-              <div className="flex-1">
-                <p className="text-white font-medium mb-2 leading-relaxed">{action.texte}</p>
-                <p className="text-stone-500 text-sm">{action.pourquoi}</p>
-              </div>
-            </div>
-          ))}
+          {result.actions.map((action) => {
+            const isCompleted = completedActions.includes(action.numero);
+            return (
+              <button
+                key={action.numero}
+                onClick={() => toggleAction(action.numero)}
+                className={`w-full flex gap-4 items-start p-6 rounded-2xl border transition-all ${
+                  isCompleted
+                    ? 'bg-green-500/10 border-green-500/50 opacity-75'
+                    : 'bg-stone-900/30 border-stone-800 hover:border-[#C5A059]/30'
+                }`}
+              >
+                <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                  isCompleted
+                    ? 'bg-green-500 scale-110'
+                    : 'bg-[#C5A059]'
+                }`}>
+                  {isCompleted ? (
+                    <span className="text-white font-bold text-lg">✓</span>
+                  ) : (
+                    <span className="text-black font-bold text-lg">{action.numero}</span>
+                  )}
+                </div>
+                <div className="flex-1 text-left">
+                  <p className={`font-medium mb-2 leading-relaxed transition-all ${
+                    isCompleted ? 'text-stone-400 line-through' : 'text-white'
+                  }`}>
+                    {action.texte}
+                  </p>
+                  <p className="text-stone-500 text-sm">{action.pourquoi}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
+        {completedActions.length === 3 && (
+          <div className="mt-6 text-center">
+            <p className="text-green-400 font-medium animate-pulse">🎉 Bravo ! Tu as tout coché !</p>
+          </div>
+        )}
       </section>
 
       {/* 5. Feedback */}
