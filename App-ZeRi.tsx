@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useUser } from '@clerk/clerk-react';
 import { exportMysticalAnalysisToPDF } from './utils/pdfExport';
 import { saveAnalysis } from './services/analysisService';
 import AuthGate from './components/AuthGate';
-import LoginPrompt from './components/LoginPrompt';
 
 type Step = 'input' | 'loading' | 'results';
 type DecisionType = 'mariage' | 'business' | 'demenagement' | 'signature' | 'lancement';
@@ -18,9 +17,7 @@ interface ZeRiInput {
 
 function AppZeRiContent() {
   const { user } = useUser();
-  const { isSignedIn } = useAuth();
   const [step, setStep] = useState<Step>('input');
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Load from localStorage on mount
   const [input, setInput] = useState<ZeRiInput>(() => {
@@ -41,39 +38,6 @@ function AppZeRiContent() {
     }
   }, [input]);
 
-  // Restaurer l'analyse en attente après connexion
-  useEffect(() => {
-    if (user && isSignedIn) {
-      const pending = sessionStorage.getItem('life-decoder-pending-analysis');
-      if (pending) {
-        try {
-          const data = JSON.parse(pending);
-          if (data.type === 'zeri') {
-            // Afficher l'analyse immédiatement
-            setAnalysis(data.analysis);
-            setStep('results');
-
-            // Sauvegarder dans Firebase
-            saveAnalysis({
-              userId: user.id,
-              type: data.type,
-              prenom: data.prenom,
-              dateNaissance: data.dateNaissance,
-              input: data.input,
-              output: data.analysis
-            }).then(() => {
-              console.log('[App-ZeRi] Pending analysis saved to Firebase after login');
-              sessionStorage.removeItem('life-decoder-pending-analysis');
-            }).catch(err => {
-              console.error('[App-ZeRi] Error saving pending analysis:', err);
-            });
-          }
-        } catch (err) {
-          console.error('[App-ZeRi] Error parsing pending analysis:', err);
-        }
-      }
-    }
-  }, [user, isSignedIn]);
 
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -135,36 +99,7 @@ Format de réponse en HTML avec des balises simples (p, strong, em, ul, li).`;
       setAnalysis(analysisResult);
       setStep('results');
 
-      // Si utilisateur non connecté, incrémenter le compteur et sauvegarder temporairement
-      if (!isSignedIn) {
-        const freeCount = parseInt(localStorage.getItem('life-decoder-free-count') || '0');
-        const newCount = freeCount + 1;
-        localStorage.setItem('life-decoder-free-count', newCount.toString());
-
-        // Sauvegarder l'analyse en sessionStorage pour la récupérer après login
-        const pendingAnalysis = {
-          type: 'zeri',
-          prenom: input.prenom,
-          dateNaissance: input.dateNaissance,
-          input: {
-            decisionType: input.decisionType,
-            periode: input.periode,
-            details: input.details
-          },
-          analysis: analysisResult,
-          createdAt: new Date().toISOString()
-        };
-        sessionStorage.setItem('life-decoder-pending-analysis', JSON.stringify(pendingAnalysis));
-
-        // Si c'est la 2ème analyse (dernière gratuite), afficher le prompt
-        if (newCount >= 2) {
-          setTimeout(() => {
-            setShowLoginPrompt(true);
-          }, 3000);
-        }
-      }
-
-      // Save to Firebase only if signed in
+      // Save to Firebase
       if (user) {
         try {
           await saveAnalysis({
@@ -366,19 +301,13 @@ Format de réponse en HTML avec des balises simples (p, strong, em, ul, li).`;
         </div>
       )}
 
-      {/* Login Prompt après analyse gratuite */}
-      {showLoginPrompt && !isSignedIn && <LoginPrompt />}
     </div>
   );
 }
 
 export default function AppZeRi() {
-  // Check if user has less than 2 free analyses left
-  const freeCount = parseInt(localStorage.getItem('life-decoder-free-count') || '0');
-  const allowFreeAccess = freeCount < 2;
-
   return (
-    <AuthGate allowFreeAccess={allowFreeAccess}>
+    <AuthGate>
       <AppZeRiContent />
     </AuthGate>
   );

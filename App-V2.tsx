@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useUser } from '@clerk/clerk-react';
 import { AppStep, DecisionType, DecisionInput, DecisionResult } from './decision-types';
 import { NumerologyProfile } from './types';
 import { analyzeDecision } from './decisionEngine';
@@ -12,13 +12,10 @@ import DecisionTypeSelector from './DecisionTypeSelector';
 import DecisionCanvas from './DecisionCanvas';
 import ResultsView from './ResultsView';
 import AuthGate from './components/AuthGate';
-import LoginPrompt from './components/LoginPrompt';
 
 function AppContent() {
   const { user } = useUser();
-  const { isSignedIn } = useAuth();
   const [step, setStep] = useState<AppStep>(AppStep.WELCOME);
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Load from localStorage on mount
   const [prenom, setPrenom] = useState(() => {
@@ -37,39 +34,6 @@ function AppContent() {
     if (dateNaissance) localStorage.setItem('life-decoder-v2-dateNaissance', dateNaissance);
   }, [dateNaissance]);
 
-  // Restaurer l'analyse en attente après connexion
-  useEffect(() => {
-    if (user && isSignedIn) {
-      const pending = sessionStorage.getItem('life-decoder-pending-analysis');
-      if (pending) {
-        try {
-          const data = JSON.parse(pending);
-          if (data.type === 'rational') {
-            // Afficher l'analyse immédiatement
-            setResult(data.result);
-            setStep(AppStep.RESULTS);
-
-            // Sauvegarder dans Firebase
-            saveAnalysis({
-              userId: user.id,
-              type: data.type,
-              prenom: data.prenom,
-              dateNaissance: data.dateNaissance,
-              input: data.decisionInput,
-              output: data.result
-            }).then(() => {
-              console.log('[App-V2] Pending analysis saved to Firebase after login');
-              sessionStorage.removeItem('life-decoder-pending-analysis');
-            }).catch(err => {
-              console.error('[App-V2] Error saving pending analysis:', err);
-            });
-          }
-        } catch (err) {
-          console.error('[App-V2] Error parsing pending analysis:', err);
-        }
-      }
-    }
-  }, [user, isSignedIn]);
 
   const [profile, setProfile] = useState<NumerologyProfile | null>(null);
   const [decisionType, setDecisionType] = useState<DecisionType | null>(null);
@@ -132,32 +96,7 @@ function AppContent() {
       setResult(fullResult);
       saveDecision(fullResult);
 
-      // Si utilisateur non connecté, incrémenter le compteur et sauvegarder temporairement
-      if (!isSignedIn) {
-        const freeCount = parseInt(localStorage.getItem('life-decoder-free-count') || '0');
-        const newCount = freeCount + 1;
-        localStorage.setItem('life-decoder-free-count', newCount.toString());
-
-        // Sauvegarder l'analyse en sessionStorage pour la récupérer après login
-        const pendingAnalysis = {
-          type: 'rational',
-          prenom,
-          dateNaissance,
-          decisionInput: data,
-          result: fullResult,
-          createdAt: new Date().toISOString()
-        };
-        sessionStorage.setItem('life-decoder-pending-analysis', JSON.stringify(pendingAnalysis));
-
-        // Si c'est la 2ème analyse (dernière gratuite), afficher le prompt
-        if (newCount >= 2) {
-          setTimeout(() => {
-            setShowLoginPrompt(true);
-          }, 3000);
-        }
-      }
-
-      // Sauvegarder dans Firebase si connecté
+      // Sauvegarder dans Firebase
       if (user) {
         try {
           await saveAnalysis({
@@ -272,19 +211,13 @@ function AppContent() {
         </>
       )}
 
-      {/* Login Prompt après analyse gratuite */}
-      {showLoginPrompt && !isSignedIn && <LoginPrompt />}
     </div>
   );
 }
 
 export default function App() {
-  // Check if user has less than 2 free analyses left
-  const freeCount = parseInt(localStorage.getItem('life-decoder-free-count') || '0');
-  const allowFreeAccess = freeCount < 2;
-
   return (
-    <AuthGate allowFreeAccess={allowFreeAccess}>
+    <AuthGate>
       <AppContent />
     </AuthGate>
   );

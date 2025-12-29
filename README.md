@@ -70,20 +70,16 @@ Life Decoder est une plateforme d'analyse décisionnelle combinant **numérologi
 - **Données sauvegardées** : Historique des analyses par utilisateur
 - **Gratuit** : Jusqu'à 50,000 reads/day + 20,000 writes/day
 
-## 🎁 Système Freemium
+## 🔐 Accès
 
-### Utilisateurs Non-Connectés
-- ✅ **2 analyses gratuites** (tous modes confondus)
-- ❌ Pas d'historique sauvegardé
-- ❌ Pas de téléchargement PDF
+**Connexion requise** : L'application nécessite une connexion via Google OAuth (Clerk) pour accéder aux analyses.
 
-### Utilisateurs Connectés
-- ✅ **Analyses illimitées**
+### Fonctionnalités pour les utilisateurs connectés
+- ✅ **Analyses illimitées** (tous les 3 modes)
 - ✅ Historique sauvegardé dans Firebase
-- ✅ Téléchargement PDF
-- ✅ Accès à tous les modes
-
-**Compteur partagé** : `localStorage.getItem('life-decoder-free-count')`
+- ✅ Téléchargement PDF des analyses
+- ✅ Sauvegarde automatique de vos données
+- ✅ 100% Gratuit
 
 ## 🔒 Sécurité
 
@@ -138,20 +134,15 @@ Un assistant IA de clarification décisionnelle, pas un oracle.
 
 - ✅ 3 modes d'analyse (Mystique, 择日, Rationnel)
 - ✅ Export PDF des analyses
-- ✅ Historique complet (utilisateurs connectés)
+- ✅ Historique complet sauvegardé
 - ✅ Authentication Google via Clerk
 - ✅ Sauvegarde Firebase
-- ✅ Système freemium (2 analyses gratuites)
 - ✅ CGU juridiquement sécurisées
 - ✅ Interface responsive avec animations
 - ✅ Dark mode design
+- ✅ 100% Gratuit et illimité
 
 ## 💡 Améliorations futures
-
-### Monétisation
-- [ ] Stripe Payment Links pour accès premium
-- [ ] Page Pricing
-- [ ] Plans d'abonnement (mensuel/annuel)
 
 ### Analytics
 - [ ] Posthog / Mixpanel
