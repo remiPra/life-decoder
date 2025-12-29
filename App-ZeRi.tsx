@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { exportMysticalAnalysisToPDF } from './utils/pdfExport';
 import { saveAnalysis } from './services/analysisService';
@@ -18,13 +18,25 @@ interface ZeRiInput {
 function AppZeRiContent() {
   const { user } = useUser();
   const [step, setStep] = useState<Step>('input');
-  const [input, setInput] = useState<ZeRiInput>({
-    prenom: '',
-    dateNaissance: '',
-    decisionType: 'business',
-    periode: '',
-    details: ''
+
+  // Load from localStorage on mount
+  const [input, setInput] = useState<ZeRiInput>(() => {
+    const saved = localStorage.getItem('life-decoder-zeri');
+    return saved ? JSON.parse(saved) : {
+      prenom: '',
+      dateNaissance: '',
+      decisionType: 'business',
+      periode: '',
+      details: ''
+    };
   });
+
+  // Save to localStorage when input changes
+  useEffect(() => {
+    if (input.prenom || input.dateNaissance) {
+      localStorage.setItem('life-decoder-zeri', JSON.stringify(input));
+    }
+  }, [input]);
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(false);
 

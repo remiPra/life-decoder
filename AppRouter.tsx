@@ -3,9 +3,10 @@ import { UserButton, useAuth } from '@clerk/clerk-react';
 import AppV1 from './App';
 import AppV2 from './App-V2';
 import AppZeRi from './App-ZeRi';
+import HistoryPage from './components/HistoryPage';
 
 export default function AppRouter() {
-  const [mode, setMode] = useState<'rational' | 'mystique' | 'zeri'>('mystique');
+  const [mode, setMode] = useState<'rational' | 'mystique' | 'zeri' | 'history'>('mystique');
   const [menuOpen, setMenuOpen] = useState(false);
   const { isSignedIn } = useAuth();
 
@@ -82,6 +83,29 @@ export default function AppRouter() {
                   </div>
                 </button>
               ))}
+
+              {/* Historique Button */}
+              <div className="pt-4 mt-4 border-t border-stone-800">
+                <button
+                  onClick={() => {
+                    setMode('history');
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left p-4 rounded-xl transition-all ${
+                    mode === 'history'
+                      ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20'
+                      : 'glass border border-stone-700 text-stone-300 hover:border-[#C5A059]/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl">📋</span>
+                    <div>
+                      <div className="font-serif text-lg mb-1">Historique</div>
+                      <div className="text-xs opacity-70">Tes analyses sauvegardées</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
             </div>
 
             <div className="absolute bottom-8 left-8 right-8">
@@ -98,6 +122,7 @@ export default function AppRouter() {
       {mode === 'rational' && <AppV2 />}
       {mode === 'mystique' && <AppV1 />}
       {mode === 'zeri' && <AppZeRi />}
+      {mode === 'history' && <HistoryPage onClose={() => setMode('mystique')} />}
     </div>
   );
 }

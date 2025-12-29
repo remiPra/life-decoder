@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { AppStep, DecisionType, DecisionInput, DecisionResult } from './decision-types';
 import { NumerologyProfile } from './types';
@@ -16,8 +16,23 @@ import AuthGate from './components/AuthGate';
 function AppContent() {
   const { user } = useUser();
   const [step, setStep] = useState<AppStep>(AppStep.WELCOME);
-  const [prenom, setPrenom] = useState('');
-  const [dateNaissance, setDateNaissance] = useState('');
+
+  // Load from localStorage on mount
+  const [prenom, setPrenom] = useState(() => {
+    return localStorage.getItem('life-decoder-v2-prenom') || '';
+  });
+  const [dateNaissance, setDateNaissance] = useState(() => {
+    return localStorage.getItem('life-decoder-v2-dateNaissance') || '';
+  });
+
+  // Save to localStorage when they change
+  useEffect(() => {
+    if (prenom) localStorage.setItem('life-decoder-v2-prenom', prenom);
+  }, [prenom]);
+
+  useEffect(() => {
+    if (dateNaissance) localStorage.setItem('life-decoder-v2-dateNaissance', dateNaissance);
+  }, [dateNaissance]);
   const [profile, setProfile] = useState<NumerologyProfile | null>(null);
   const [decisionType, setDecisionType] = useState<DecisionType | null>(null);
   const [result, setResult] = useState<DecisionResult | null>(null);

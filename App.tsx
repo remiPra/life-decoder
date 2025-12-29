@@ -24,7 +24,13 @@ const InputField = ({ label, value, onChange, placeholder, type = "text", maxLen
 function AppContent() {
   const { user } = useUser();
   const [step, setStep] = useState<AppStep>(AppStep.INITIATION);
-  const [identity, setIdentity] = useState({ firstName: '', lastName: '', day: '', month: '', year: '' });
+
+  // Load from localStorage on mount
+  const [identity, setIdentity] = useState(() => {
+    const saved = localStorage.getItem('life-decoder-identity');
+    return saved ? JSON.parse(saved) : { firstName: '', lastName: '', day: '', month: '', year: '' };
+  });
+
   const [timing, setTiming] = useState({
     questionDate: new Date().toISOString().split('T')[0],
     questionTime: new Date().toTimeString().slice(0, 5),
@@ -38,6 +44,13 @@ function AppContent() {
   const [loading, setLoading] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'start' | 'identity' | 'temporal'>('start');
+
+  // Save to localStorage when identity changes
+  useEffect(() => {
+    if (identity.firstName || identity.day || identity.month || identity.year) {
+      localStorage.setItem('life-decoder-identity', JSON.stringify(identity));
+    }
+  }, [identity]);
 
   const startInitiation = (e: React.FormEvent) => {
     e.preventDefault();
