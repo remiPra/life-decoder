@@ -24,6 +24,7 @@ const InputField = ({ label, value, onChange, placeholder, type = "text", maxLen
 function AppContent() {
   const { user } = useUser();
   const [step, setStep] = useState<AppStep>(AppStep.INITIATION);
+  const PENDING_KEY = 'life-decoder-pending-analysis';
 
   // Load from localStorage on mount
   const [identity, setIdentity] = useState(() => {
@@ -81,6 +82,19 @@ function AppContent() {
       const res = await runAnalysis(mod, profile, timingCtx);
       setAnalysis(res);
 
+      // Store locally if not signed in so we can sync after login
+      if (!user) {
+        const pendingPayload = {
+          type: 'mystique' as const,
+          prenom: profile.firstName,
+          dateNaissance: `${identity.year}-${identity.month.padStart(2, '0')}-${identity.day.padStart(2, '0')}`,
+          input: { module: mod, timing: timingCtx },
+          output: res,
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem(PENDING_KEY, JSON.stringify(pendingPayload));
+      }
+
       // Save to Firebase
       if (user) {
         try {
@@ -105,6 +119,34 @@ function AppContent() {
       setLoading(false);
     }
   };
+
+  // Sync any locally saved analysis after login
+  useEffect(() => {
+    if (!user) return;
+    const raw = localStorage.getItem(PENDING_KEY);
+    if (!raw) return;
+
+    try {
+      const pending = JSON.parse(raw);
+      if (pending?.type === 'mystique') {
+        saveAnalysis({
+          userId: user.id,
+          type: 'mystique',
+          prenom: pending.prenom,
+          dateNaissance: pending.dateNaissance,
+          input: pending.input,
+          output: pending.output
+        }).then(() => {
+          console.log('[App] Pending analysis synced after login');
+          localStorage.removeItem(PENDING_KEY);
+        }).catch((err) => {
+          console.error('[App] Error syncing pending analysis:', err);
+        });
+      }
+    } catch (err) {
+      console.error('[App] Failed to parse pending analysis:', err);
+    }
+  }, [user]);
 
   // Format markdown-like text to HTML
   const formatAnalysis = (text: string) => {
@@ -380,7 +422,7 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthGate>
+    <AuthGate allowFreeAccess>
       <AppContent />
     </AuthGate>
   );

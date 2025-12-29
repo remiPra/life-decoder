@@ -16,6 +16,7 @@ import AuthGate from './components/AuthGate';
 function AppContent() {
   const { user } = useUser();
   const [step, setStep] = useState<AppStep>(AppStep.WELCOME);
+  const PENDING_KEY = 'life-decoder-v2-pending-analysis';
 
   // Load from localStorage on mount
   const [prenom, setPrenom] = useState(() => {
@@ -96,6 +97,19 @@ function AppContent() {
       setResult(fullResult);
       saveDecision(fullResult);
 
+      // Keep a local draft if the user is not signed in yet
+      if (!user) {
+        const pendingPayload = {
+          type: 'rational' as const,
+          prenom,
+          dateNaissance,
+          input: data,
+          output: fullResult,
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem(PENDING_KEY, JSON.stringify(pendingPayload));
+      }
+
       // Sauvegarder dans Firebase
       if (user) {
         try {
@@ -121,6 +135,34 @@ function AppContent() {
       setLoading(false);
     }
   };
+
+  // Sync any locally saved analysis after login
+  useEffect(() => {
+    if (!user) return;
+    const raw = localStorage.getItem(PENDING_KEY);
+    if (!raw) return;
+
+    try {
+      const pending = JSON.parse(raw);
+      if (pending?.type === 'rational') {
+        saveAnalysis({
+          userId: user.id,
+          type: 'rational',
+          prenom: pending.prenom,
+          dateNaissance: pending.dateNaissance,
+          input: pending.input,
+          output: pending.output
+        }).then(() => {
+          console.log('[App-V2] Pending analysis synced after login');
+          localStorage.removeItem(PENDING_KEY);
+        }).catch((err) => {
+          console.error('[App-V2] Error syncing pending analysis:', err);
+        });
+      }
+    } catch (err) {
+      console.error('[App-V2] Failed to parse pending analysis:', err);
+    }
+  }, [user]);
 
   const handleNewDecision = () => {
     setStep(AppStep.WELCOME);
@@ -217,7 +259,7 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthGate>
+    <AuthGate allowFreeAccess>
       <AppContent />
     </AuthGate>
   );
