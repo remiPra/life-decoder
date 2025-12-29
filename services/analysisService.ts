@@ -1,4 +1,4 @@
-import { collection, addDoc, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export interface SavedAnalysis {
@@ -36,8 +36,7 @@ export async function getUserAnalyses(userId: string): Promise<SavedAnalysis[]> 
   try {
     const q = query(
       collection(db, 'analyses'),
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', userId)
     );
 
     const querySnapshot = await getDocs(q);
@@ -45,6 +44,11 @@ export async function getUserAnalyses(userId: string): Promise<SavedAnalysis[]> 
 
     querySnapshot.forEach((doc) => {
       const data = doc.data();
+      const createdAt = data.createdAt?.toDate
+        ? data.createdAt.toDate()
+        : data.createdAt
+          ? new Date(data.createdAt)
+          : new Date(0); // Fallback if field missing
       analyses.push({
         id: doc.id,
         userId: data.userId,
@@ -53,9 +57,12 @@ export async function getUserAnalyses(userId: string): Promise<SavedAnalysis[]> 
         dateNaissance: data.dateNaissance,
         input: data.input,
         output: data.output,
-        createdAt: data.createdAt.toDate()
+        createdAt
       });
     });
+
+    // Sort client-side to avoid needing a Firestore composite index
+    analyses.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     console.log(`[Firebase] Found ${analyses.length} analyses for user ${userId}`);
     return analyses;
