@@ -62,7 +62,7 @@ function AppZeRiContent() {
     e.preventDefault();
     if (!user) {
       localStorage.setItem(PENDING_INPUT_KEY, JSON.stringify(input));
-      alert('Connecte-toi ou crée un compte pour lancer cette analyse. Nous avons sauvegardé tes infos.');
+      window.dispatchEvent(new Event('life-decoder:require-auth'));
       return;
     }
     setLoading(true);

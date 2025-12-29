@@ -37,6 +37,16 @@ export default function AppRouter() {
     return () => clearTimeout(timer);
   }, [isSignedIn]);
 
+  // Listen for auth-required events triggered from child apps (to replace alert)
+  useEffect(() => {
+    const handler = () => {
+      setShowSignupPrompt(true);
+      setShowInlineAuth(false);
+    };
+    window.addEventListener('life-decoder:require-auth', handler);
+    return () => window.removeEventListener('life-decoder:require-auth', handler);
+  }, []);
+
   return (
     <div className="relative">
       {/* Menu Drawer Button + User button */}
