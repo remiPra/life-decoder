@@ -41,29 +41,6 @@ function AppZeRiContent() {
     }
   }, [input]);
 
-  // Sauvegarder l'analyse en attente dans Firebase quand l'utilisateur se connecte
-  useEffect(() => {
-    if (user && isSignedIn) {
-      const pendingAnalysis = localStorage.getItem('life-decoder-pending-analysis');
-      if (pendingAnalysis) {
-        try {
-          const analysis = JSON.parse(pendingAnalysis);
-          saveAnalysis({
-            userId: user.id,
-            ...analysis
-          }).then(() => {
-            console.log('[App-ZeRi] Pending analysis saved to Firebase after login');
-            localStorage.removeItem('life-decoder-pending-analysis');
-          }).catch(err => {
-            console.error('[App-ZeRi] Error saving pending analysis:', err);
-          });
-        } catch (err) {
-          console.error('[App-ZeRi] Error parsing pending analysis:', err);
-        }
-      }
-    }
-  }, [user, isSignedIn]);
-
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
@@ -124,29 +101,18 @@ Format de réponse en HTML avec des balises simples (p, strong, em, ul, li).`;
       setAnalysis(analysisResult);
       setStep('results');
 
-      // Si utilisateur non connecté et c'est sa première analyse gratuite
+      // Si utilisateur non connecté, incrémenter le compteur d'analyses gratuites
       if (!isSignedIn) {
-        localStorage.setItem('life-decoder-free-used', 'true');
+        const freeCount = parseInt(localStorage.getItem('life-decoder-free-count') || '0');
+        const newCount = freeCount + 1;
+        localStorage.setItem('life-decoder-free-count', newCount.toString());
 
-        // Sauvegarder l'analyse temporairement dans localStorage
-        const tempAnalysis = {
-          type: 'zeri',
-          prenom: input.prenom,
-          dateNaissance: input.dateNaissance,
-          input: {
-            decisionType: input.decisionType,
-            periode: input.periode,
-            details: input.details
-          },
-          output: analysisResult,
-          createdAt: new Date().toISOString()
-        };
-        localStorage.setItem('life-decoder-pending-analysis', JSON.stringify(tempAnalysis));
-
-        // Afficher le prompt de connexion après un délai
-        setTimeout(() => {
-          setShowLoginPrompt(true);
-        }, 3000); // 3 secondes après avoir vu le résultat
+        // Si c'est la 2ème analyse (dernière gratuite), afficher le prompt
+        if (newCount >= 2) {
+          setTimeout(() => {
+            setShowLoginPrompt(true);
+          }, 3000);
+        }
       }
 
       // Save to Firebase only if signed in
@@ -358,11 +324,12 @@ Format de réponse en HTML avec des balises simples (p, strong, em, ul, li).`;
 }
 
 export default function AppZeRi() {
-  // Check if user has used their free analysis
-  const hasUsedFree = localStorage.getItem('life-decoder-free-used') === 'true';
+  // Check if user has less than 2 free analyses left
+  const freeCount = parseInt(localStorage.getItem('life-decoder-free-count') || '0');
+  const allowFreeAccess = freeCount < 2;
 
   return (
-    <AuthGate allowFreeAccess={!hasUsedFree}>
+    <AuthGate allowFreeAccess={allowFreeAccess}>
       <AppZeRiContent />
     </AuthGate>
   );
