@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { AppStep, NumerologyProfile, AnalysisModule, AIResponse, TimingContext } from './types';
 import { calculateFullProfile, ARCHETYPES } from './utils/numerology';
 import { runAnalysis } from './services/mysticalEngine';
 import { exportMysticalAnalysisToPDF } from './utils/pdfExport';
 import { saveAnalysis } from './services/analysisService';
 import AuthGate from './components/AuthGate';
+import LoginPrompt from './components/LoginPrompt';
 
 const InputField = ({ label, value, onChange, placeholder, type = "text", maxLength }: any) => (
   <div className="space-y-2">
@@ -23,7 +24,9 @@ const InputField = ({ label, value, onChange, placeholder, type = "text", maxLen
 
 function AppContent() {
   const { user } = useUser();
+  const { isSignedIn } = useAuth();
   const [step, setStep] = useState<AppStep>(AppStep.INITIATION);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Load from localStorage on mount
   const [identity, setIdentity] = useState(() => {
@@ -80,7 +83,16 @@ function AppContent() {
       const res = await runAnalysis(mod, profile, timingCtx);
       setAnalysis(res);
 
-      // Save to Firebase
+      // Si utilisateur non connecté et c'est sa première analyse gratuite
+      if (!isSignedIn) {
+        localStorage.setItem('life-decoder-free-used', 'true');
+        // Afficher le prompt de connexion après un délai
+        setTimeout(() => {
+          setShowLoginPrompt(true);
+        }, 3000); // 3 secondes après avoir vu le résultat
+      }
+
+      // Save to Firebase si connecté
       if (user) {
         try {
           await saveAnalysis({
@@ -372,13 +384,19 @@ function AppContent() {
           )}
         </div>
       )}
+
+      {/* Login Prompt après analyse gratuite */}
+      {showLoginPrompt && !isSignedIn && <LoginPrompt />}
     </div>
   );
 }
 
 export default function App() {
+  // Check if user has used their free analysis
+  const hasUsedFree = localStorage.getItem('life-decoder-free-used') === 'true';
+
   return (
-    <AuthGate>
+    <AuthGate allowFreeAccess={!hasUsedFree}>
       <AppContent />
     </AuthGate>
   );

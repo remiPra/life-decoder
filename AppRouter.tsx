@@ -10,6 +10,11 @@ export default function AppRouter() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { isSignedIn } = useAuth();
 
+  // Track if user has done their free analysis
+  const [hasUsedFreeAnalysis, setHasUsedFreeAnalysis] = useState(() => {
+    return localStorage.getItem('life-decoder-free-used') === 'true';
+  });
+
   const modes = [
     { id: 'mystique' as const, icon: '🔮', label: 'Mystique', desc: 'Numérologie & Oracle' },
     { id: 'zeri' as const, icon: '🌙', label: '择日', desc: 'Dates Favorables' },

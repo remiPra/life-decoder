@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { AppStep, DecisionType, DecisionInput, DecisionResult } from './decision-types';
 import { NumerologyProfile } from './types';
 import { analyzeDecision } from './decisionEngine';
@@ -12,10 +12,13 @@ import DecisionTypeSelector from './DecisionTypeSelector';
 import DecisionCanvas from './DecisionCanvas';
 import ResultsView from './ResultsView';
 import AuthGate from './components/AuthGate';
+import LoginPrompt from './components/LoginPrompt';
 
 function AppContent() {
   const { user } = useUser();
+  const { isSignedIn } = useAuth();
   const [step, setStep] = useState<AppStep>(AppStep.WELCOME);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Load from localStorage on mount
   const [prenom, setPrenom] = useState(() => {
@@ -94,7 +97,16 @@ function AppContent() {
       setResult(fullResult);
       saveDecision(fullResult);
 
-      // Sauvegarder dans Firebase
+      // Si utilisateur non connecté et c'est sa première analyse gratuite
+      if (!isSignedIn) {
+        localStorage.setItem('life-decoder-free-used', 'true');
+        // Afficher le prompt de connexion après un délai
+        setTimeout(() => {
+          setShowLoginPrompt(true);
+        }, 3000); // 3 secondes après avoir vu le résultat
+      }
+
+      // Sauvegarder dans Firebase si connecté
       if (user) {
         try {
           await saveAnalysis({
@@ -208,13 +220,19 @@ function AppContent() {
           )}
         </>
       )}
+
+      {/* Login Prompt après analyse gratuite */}
+      {showLoginPrompt && !isSignedIn && <LoginPrompt />}
     </div>
   );
 }
 
 export default function App() {
+  // Check if user has used their free analysis
+  const hasUsedFree = localStorage.getItem('life-decoder-free-used') === 'true';
+
   return (
-    <AuthGate>
+    <AuthGate allowFreeAccess={!hasUsedFree}>
       <AppContent />
     </AuthGate>
   );
