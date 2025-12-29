@@ -22,7 +22,9 @@ export default async function handler(req, res) {
         'X-Title': 'Life Decoder Mystical'
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-opus-4.5',
+        // model: 'anthropic/claude-opus-4.5',
+        model: "openai/gpt-5.1",
+
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
