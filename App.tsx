@@ -92,7 +92,16 @@ function AppContent() {
         context: timing.context || undefined
       } : {};
 
-      const res = await runAnalysis(mod, profile, timingCtx);
+      let liveText = '';
+      const res = await runAnalysis(
+        mod,
+        profile,
+        timingCtx,
+        (delta) => {
+          liveText += delta;
+          setAnalysis({ analysis: liveText });
+        }
+      );
       setAnalysis(res);
 
       // Store locally if not signed in so we can sync after login

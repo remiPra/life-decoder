@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { exportMysticalAnalysisToPDF } from './utils/pdfExport';
 import { saveAnalysis } from './services/analysisService';
+import { streamCompletion } from './utils/streaming';
 import AuthGate from './components/AuthGate';
 
 type Step = 'input' | 'loading' | 'results';
@@ -96,20 +97,22 @@ Ton analyse doit être:
 Format de réponse en HTML avec des balises simples (p, strong, em, ul, li).`;
 
     try {
-      const response = await fetch('/api/analyze-mystical', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      let liveText = '';
+      const analysisResult = await streamCompletion(
+        '/api/analyze-mystical',
+        {
           systemPrompt: 'Tu es un expert en calendrier lunaire chinois et 择日.',
           prompt
-        })
-      });
+        },
+        {
+          onChunk: (delta) => {
+            liveText += delta;
+            setAnalysis(liveText);
+          }
+        }
+      );
 
-      if (!response.ok) throw new Error('Erreur API');
-
-      const data = await response.json();
-      const analysisResult = data.choices[0].message.content || 'Aucune analyse reçue.';
-      setAnalysis(analysisResult);
+      setAnalysis(analysisResult || 'Aucune analyse reçue.');
       setStep('results');
 
       // Save to Firebase

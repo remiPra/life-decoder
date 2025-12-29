@@ -10,6 +10,7 @@ export default async function handler(req, res) {
 
   // Récupérer la    clé API depuis les variables d'environnement SERVEUR
   const apiKey = process.env.OPENROUTER_API_KEY;
+  const wantsStream = (req.query && req.query.stream === '1') || (req.headers.accept || '').includes('text/event-stream');
 
   if (!apiKey) {
     return res.status(500).json({ error: 'API key not configured' });
@@ -22,6 +23,18 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
+    const body = {
+      // model: 'anthropic/claude-opus-4.5',
+      model: "openai/gpt-5.1",
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7,
+      max_tokens: 2000,
+    };
+
+    if (wantsStream) {
+      body.stream = true;
+    }
+
     // Appeler OpenRouter depuis le SERVEUR (pas le navigateur)
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -31,18 +44,28 @@ export default async function handler(req, res) {
         'HTTP-Referer': req.headers.origin || 'https://life-decoder.vercel.app',
         'X-Title': 'Life Decoder'
       },
-      body: JSON.stringify({
-        // model: 'anthropic/claude-opus-4.5',
-        model: "openai/gpt-5.1",
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 2000,
-      })
+      body: JSON.stringify(body)
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.text();
       return res.status(response.status).json({ error: errorData });
+    }
+
+    if (wantsStream) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('Connection', 'keep-alive');
+
+      if (!response.body) {
+        return res.status(500).json({ error: 'Stream body missing' });
+      }
+
+      for await (const chunk of response.body) {
+        res.write(chunk);
+      }
+      res.end();
+      return;
     }
 
     const data = await response.json();
