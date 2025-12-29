@@ -40,6 +40,30 @@ function AppZeRiContent() {
       localStorage.setItem('life-decoder-zeri', JSON.stringify(input));
     }
   }, [input]);
+
+  // Sauvegarder l'analyse en attente dans Firebase quand l'utilisateur se connecte
+  useEffect(() => {
+    if (user && isSignedIn) {
+      const pendingAnalysis = localStorage.getItem('life-decoder-pending-analysis');
+      if (pendingAnalysis) {
+        try {
+          const analysis = JSON.parse(pendingAnalysis);
+          saveAnalysis({
+            userId: user.id,
+            ...analysis
+          }).then(() => {
+            console.log('[App-ZeRi] Pending analysis saved to Firebase after login');
+            localStorage.removeItem('life-decoder-pending-analysis');
+          }).catch(err => {
+            console.error('[App-ZeRi] Error saving pending analysis:', err);
+          });
+        } catch (err) {
+          console.error('[App-ZeRi] Error parsing pending analysis:', err);
+        }
+      }
+    }
+  }, [user, isSignedIn]);
+
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
@@ -103,6 +127,22 @@ Format de réponse en HTML avec des balises simples (p, strong, em, ul, li).`;
       // Si utilisateur non connecté et c'est sa première analyse gratuite
       if (!isSignedIn) {
         localStorage.setItem('life-decoder-free-used', 'true');
+
+        // Sauvegarder l'analyse temporairement dans localStorage
+        const tempAnalysis = {
+          type: 'zeri',
+          prenom: input.prenom,
+          dateNaissance: input.dateNaissance,
+          input: {
+            decisionType: input.decisionType,
+            periode: input.periode,
+            details: input.details
+          },
+          output: analysisResult,
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem('life-decoder-pending-analysis', JSON.stringify(tempAnalysis));
+
         // Afficher le prompt de connexion après un délai
         setTimeout(() => {
           setShowLoginPrompt(true);

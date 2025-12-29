@@ -55,6 +55,29 @@ function AppContent() {
     }
   }, [identity]);
 
+  // Sauvegarder l'analyse en attente dans Firebase quand l'utilisateur se connecte
+  useEffect(() => {
+    if (user && isSignedIn) {
+      const pendingAnalysis = localStorage.getItem('life-decoder-pending-analysis');
+      if (pendingAnalysis) {
+        try {
+          const analysis = JSON.parse(pendingAnalysis);
+          saveAnalysis({
+            userId: user.id,
+            ...analysis
+          }).then(() => {
+            console.log('[App] Pending analysis saved to Firebase after login');
+            localStorage.removeItem('life-decoder-pending-analysis');
+          }).catch(err => {
+            console.error('[App] Error saving pending analysis:', err);
+          });
+        } catch (err) {
+          console.error('[App] Error parsing pending analysis:', err);
+        }
+      }
+    }
+  }, [user, isSignedIn]);
+
   const startInitiation = (e: React.FormEvent) => {
     e.preventDefault();
     const { firstName, day, month, year } = identity;
@@ -86,6 +109,18 @@ function AppContent() {
       // Si utilisateur non connecté et c'est sa première analyse gratuite
       if (!isSignedIn) {
         localStorage.setItem('life-decoder-free-used', 'true');
+
+        // Sauvegarder l'analyse temporairement dans localStorage
+        const tempAnalysis = {
+          type: 'mystique',
+          prenom: profile.firstName,
+          dateNaissance: `${identity.year}-${identity.month.padStart(2, '0')}-${identity.day.padStart(2, '0')}`,
+          input: { module: mod, timing: timingCtx },
+          output: res,
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem('life-decoder-pending-analysis', JSON.stringify(tempAnalysis));
+
         // Afficher le prompt de connexion après un délai
         setTimeout(() => {
           setShowLoginPrompt(true);

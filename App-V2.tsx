@@ -36,6 +36,30 @@ function AppContent() {
   useEffect(() => {
     if (dateNaissance) localStorage.setItem('life-decoder-v2-dateNaissance', dateNaissance);
   }, [dateNaissance]);
+
+  // Sauvegarder l'analyse en attente dans Firebase quand l'utilisateur se connecte
+  useEffect(() => {
+    if (user && isSignedIn) {
+      const pendingAnalysis = localStorage.getItem('life-decoder-pending-analysis');
+      if (pendingAnalysis) {
+        try {
+          const analysis = JSON.parse(pendingAnalysis);
+          saveAnalysis({
+            userId: user.id,
+            ...analysis
+          }).then(() => {
+            console.log('[App-V2] Pending analysis saved to Firebase after login');
+            localStorage.removeItem('life-decoder-pending-analysis');
+          }).catch(err => {
+            console.error('[App-V2] Error saving pending analysis:', err);
+          });
+        } catch (err) {
+          console.error('[App-V2] Error parsing pending analysis:', err);
+        }
+      }
+    }
+  }, [user, isSignedIn]);
+
   const [profile, setProfile] = useState<NumerologyProfile | null>(null);
   const [decisionType, setDecisionType] = useState<DecisionType | null>(null);
   const [result, setResult] = useState<DecisionResult | null>(null);
@@ -100,6 +124,18 @@ function AppContent() {
       // Si utilisateur non connecté et c'est sa première analyse gratuite
       if (!isSignedIn) {
         localStorage.setItem('life-decoder-free-used', 'true');
+
+        // Sauvegarder l'analyse temporairement dans localStorage
+        const tempAnalysis = {
+          type: 'rational',
+          prenom,
+          dateNaissance,
+          input: data,
+          output: fullResult,
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem('life-decoder-pending-analysis', JSON.stringify(tempAnalysis));
+
         // Afficher le prompt de connexion après un délai
         setTimeout(() => {
           setShowLoginPrompt(true);
