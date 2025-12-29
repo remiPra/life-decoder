@@ -17,6 +17,7 @@ function AppContent() {
   const { user } = useUser();
   const [step, setStep] = useState<AppStep>(AppStep.WELCOME);
   const PENDING_KEY = 'life-decoder-v2-pending-analysis';
+  const PENDING_INPUT_KEY = 'life-decoder-v2-pending-analysis-input';
 
   // Load from localStorage on mount
   const [prenom, setPrenom] = useState(() => {
@@ -65,6 +66,19 @@ function AppContent() {
     importance: number;
   }) => {
     if (!profile || !decisionType) return;
+
+    if (!user) {
+      // Keep the request so the user can log in without losing the selection
+      const pendingInput = {
+        type: 'rational' as const,
+        prenom,
+        dateNaissance,
+        input: data,
+      };
+      localStorage.setItem(PENDING_INPUT_KEY, JSON.stringify(pendingInput));
+      alert('Connecte-toi ou crée un compte pour lancer cette analyse. Nous avons sauvegardé tes infos.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -139,6 +153,12 @@ function AppContent() {
   // Sync any locally saved analysis after login
   useEffect(() => {
     if (!user) return;
+
+    // Clear any pending request hint (was stored when user tried while logged out)
+    if (localStorage.getItem(PENDING_INPUT_KEY)) {
+      localStorage.removeItem(PENDING_INPUT_KEY);
+    }
+
     const raw = localStorage.getItem(PENDING_KEY);
     if (!raw) return;
 

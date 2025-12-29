@@ -25,6 +25,7 @@ function AppContent() {
   const { user } = useUser();
   const [step, setStep] = useState<AppStep>(AppStep.INITIATION);
   const PENDING_KEY = 'life-decoder-pending-analysis';
+  const PENDING_INPUT_KEY = 'life-decoder-pending-analysis-input';
 
   // Load from localStorage on mount
   const [identity, setIdentity] = useState(() => {
@@ -66,6 +67,18 @@ function AppContent() {
 
   const runAnalysisHandler = async (mod: AnalysisModule) => {
     if (!profile) return;
+    if (!user) {
+      // Keep the request so the user can log in without losing the selection
+      const pendingInput = {
+        type: 'mystique' as const,
+        prenom: profile.firstName,
+        dateNaissance: `${identity.year}-${identity.month.padStart(2, '0')}-${identity.day.padStart(2, '0')}`,
+        input: { module: mod, timing },
+      };
+      localStorage.setItem(PENDING_INPUT_KEY, JSON.stringify(pendingInput));
+      alert('Connecte-toi ou crée un compte pour lancer cette analyse. Nous avons sauvegardé tes infos.');
+      return;
+    }
     setLoading(true);
     setStep(AppStep.CONSULTATION);
 
@@ -123,6 +136,12 @@ function AppContent() {
   // Sync any locally saved analysis after login
   useEffect(() => {
     if (!user) return;
+
+    // If the user had attempted an analysis while logged out, clear that hint now
+    if (localStorage.getItem(PENDING_INPUT_KEY)) {
+      localStorage.removeItem(PENDING_INPUT_KEY);
+    }
+
     const raw = localStorage.getItem(PENDING_KEY);
     if (!raw) return;
 
