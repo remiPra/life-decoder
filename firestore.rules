@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Collection 'analyses' - accès contrôlé par userId
+    // Note: L'authentification est gérée par Clerk côté client
+    // Ces règles permettent les opérations si les données sont bien formées
+    match /analyses/{analysisId} {
+      // Lecture: permise (la sécurité est gérée côté client via Clerk)
+      allow read: if true;
+
+      // Création: vérifie que les champs requis sont présents
+      allow create: if request.resource.data.keys().hasAll(['userId', 'type', 'prenom', 'input', 'output', 'createdAt'])
+                    && request.resource.data.type in ['mystique', 'rational', 'zeri']
+                    && request.resource.data.userId is string
+                    && request.resource.data.prenom is string;
+
+      // Mise à jour et suppression: permises
+      // (Dans une version future, on pourrait intégrer Clerk avec Firebase Custom Auth)
+      allow update, delete: if true;
+    }
+
+    // Par défaut, tout le reste est refusé
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

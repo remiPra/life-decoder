@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { AppStep, DecisionType, DecisionInput, DecisionResult } from './decision-types';
 import { NumerologyProfile } from './types';
 import { analyzeDecision } from './decisionEngine';
 import { saveDecision } from './storageUtils';
+import { saveAnalysis } from './services/analysisService';
 
 import Welcome from './Welcome';
 import ProfileForm from './ProfileForm';
@@ -11,7 +13,8 @@ import DecisionCanvas from './DecisionCanvas';
 import ResultsView from './ResultsView';
 import AuthGate from './components/AuthGate';
 
-export default function App() {
+function AppContent() {
+  const { user } = useUser();
   const [step, setStep] = useState<AppStep>(AppStep.WELCOME);
   const [prenom, setPrenom] = useState('');
   const [dateNaissance, setDateNaissance] = useState('');
@@ -75,6 +78,24 @@ export default function App() {
 
       setResult(fullResult);
       saveDecision(fullResult);
+
+      // Sauvegarder dans Firebase
+      if (user) {
+        try {
+          await saveAnalysis({
+            userId: user.id,
+            type: 'rational',
+            prenom,
+            dateNaissance,
+            input: data,
+            output: fullResult
+          });
+          console.log('[App-V2] Analysis saved to Firebase');
+        } catch (firebaseError) {
+          console.error('[App-V2] Error saving to Firebase:', firebaseError);
+          // Ne pas bloquer l'affichage des résultats si Firebase échoue
+        }
+      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
@@ -163,17 +184,23 @@ export default function App() {
           )}
 
           {result && !loading && !error && (
-            <AuthGate>
-              <ResultsView
-                result={result}
-                prenom={prenom}
-                onNewDecision={handleNewDecision}
-                onFeedback={handleFeedback}
-              />
-            </AuthGate>
+            <ResultsView
+              result={result}
+              prenom={prenom}
+              onNewDecision={handleNewDecision}
+              onFeedback={handleFeedback}
+            />
           )}
         </>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthGate>
+      <AppContent />
+    </AuthGate>
   );
 }

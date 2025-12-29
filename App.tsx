@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { AppStep, NumerologyProfile, AnalysisModule, AIResponse, TimingContext } from './types';
 import { calculateFullProfile, ARCHETYPES } from './utils/numerology';
 import { runAnalysis } from './services/mysticalEngine';
 import { exportMysticalAnalysisToPDF } from './utils/pdfExport';
+import { saveAnalysis } from './services/analysisService';
 import AuthGate from './components/AuthGate';
 
 const InputField = ({ label, value, onChange, placeholder, type = "text", maxLength }: any) => (
@@ -19,7 +21,8 @@ const InputField = ({ label, value, onChange, placeholder, type = "text", maxLen
   </div>
 );
 
-export default function App() {
+function AppContent() {
+  const { user } = useUser();
   const [step, setStep] = useState<AppStep>(AppStep.INITIATION);
   const [identity, setIdentity] = useState({ firstName: '', lastName: '', day: '', month: '', year: '' });
   const [timing, setTiming] = useState({
@@ -63,6 +66,24 @@ export default function App() {
 
       const res = await runAnalysis(mod, profile, timingCtx);
       setAnalysis(res);
+
+      // Save to Firebase
+      if (user) {
+        try {
+          await saveAnalysis({
+            userId: user.id,
+            type: 'mystique',
+            prenom: profile.firstName,
+            dateNaissance: `${identity.year}-${identity.month.padStart(2, '0')}-${identity.day.padStart(2, '0')}`,
+            input: { module: mod, timing: timingCtx },
+            output: res
+          });
+          console.log('[App] Analysis saved to Firebase');
+        } catch (firebaseError) {
+          console.error('[App] Error saving to Firebase:', firebaseError);
+          // Don't block the user flow if Firebase fails
+        }
+      }
     } catch (err) {
       console.error(err);
       alert('Erreur lors de l\'analyse: ' + (err as Error).message);
@@ -311,35 +332,41 @@ export default function App() {
               <p className="mt-16 text-stone-600 text-[10px] tracking-[0.5em] uppercase font-bold animate-pulse">L'Oracle consulte les astres...</p>
             </div>
           ) : analysis && (
-            <AuthGate>
-              <>
-                <header className="text-center">
-                  <h2 className="text-5xl font-serif text-white gold-glow mb-6 uppercase tracking-tighter">Analyse Complète</h2>
-                  <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent mx-auto"></div>
-                </header>
+            <>
+              <header className="text-center">
+                <h2 className="text-5xl font-serif text-white gold-glow mb-6 uppercase tracking-tighter">Analyse Complète</h2>
+                <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent mx-auto"></div>
+              </header>
 
-                <div className="glass p-12 rounded-[3.5rem] gold-border relative">
-                  <div
-                    className="text-xl text-white leading-relaxed font-serif"
-                    dangerouslySetInnerHTML={{ __html: formatAnalysis(analysis.analysis) }}
-                  />
-                </div>
+              <div className="glass p-12 rounded-[3.5rem] gold-border relative">
+                <div
+                  className="text-xl text-white leading-relaxed font-serif"
+                  dangerouslySetInnerHTML={{ __html: formatAnalysis(analysis.analysis) }}
+                />
+              </div>
 
-                <div className="text-center pt-16 space-y-4">
-                  <button
-                    onClick={() => exportMysticalAnalysisToPDF(analysis.analysis, profile)}
-                    className="px-10 py-4 bg-[#C5A059]/10 border-2 border-[#C5A059] text-[#C5A059] font-bold uppercase tracking-[0.3em] rounded-3xl hover:bg-[#C5A059] hover:text-black transition-all shadow-lg active:scale-95"
-                  >
-                    📄 Télécharger PDF
-                  </button>
-                  <br />
-                  <button onClick={() => setStep(AppStep.NEXUS)} className="px-20 py-6 bg-stone-100 text-black font-bold uppercase tracking-[0.4em] rounded-3xl hover:bg-white transition-all shadow-2xl active:scale-95">Retour au Nexus</button>
-                </div>
-              </>
-            </AuthGate>
+              <div className="text-center pt-16 space-y-4">
+                <button
+                  onClick={() => exportMysticalAnalysisToPDF(analysis.analysis, profile)}
+                  className="px-10 py-4 bg-[#C5A059]/10 border-2 border-[#C5A059] text-[#C5A059] font-bold uppercase tracking-[0.3em] rounded-3xl hover:bg-[#C5A059] hover:text-black transition-all shadow-lg active:scale-95"
+                >
+                  📄 Télécharger PDF
+                </button>
+                <br />
+                <button onClick={() => setStep(AppStep.NEXUS)} className="px-20 py-6 bg-stone-100 text-black font-bold uppercase tracking-[0.4em] rounded-3xl hover:bg-white transition-all shadow-2xl active:scale-95">Retour au Nexus</button>
+              </div>
+            </>
           )}
         </div>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthGate>
+      <AppContent />
+    </AuthGate>
   );
 }

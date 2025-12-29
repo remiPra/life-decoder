@@ -27,10 +27,10 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
               LIFE DECODER
             </h1>
             <p className="text-stone-300 text-base mb-2">
-              🎉 Ton analyse est prête !
+              Bienvenue
             </p>
             <p className="text-stone-400 text-sm tracking-wider">
-              Connecte-toi pour voir tes résultats
+              Connecte-toi pour accéder à l'app
             </p>
           </div>
 
