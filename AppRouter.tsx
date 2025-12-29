@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
-import { UserButton, useAuth } from '@clerk/clerk-react';
+import React, { useEffect, useState } from 'react';
+import { UserButton, useAuth, SignIn } from '@clerk/clerk-react';
 import AppV1 from './App';
 import AppV2 from './App-V2';
 import AppZeRi from './App-ZeRi';
 import HistoryPage from './components/HistoryPage';
+import TermsModal from './components/TermsModal';
 
 export default function AppRouter() {
   const [mode, setMode] = useState<'rational' | 'mystique' | 'zeri' | 'history'>('mystique');
   const [menuOpen, setMenuOpen] = useState(false);
   const { isSignedIn } = useAuth();
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+  const [showInlineAuth, setShowInlineAuth] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // Track if user has done their free analysis
   const [hasUsedFreeAnalysis, setHasUsedFreeAnalysis] = useState(() => {
@@ -20,6 +25,17 @@ export default function AppRouter() {
     { id: 'zeri' as const, icon: '🌙', label: '择日', desc: 'Dates Favorables' },
     { id: 'rational' as const, icon: '✨', label: 'Rationnel', desc: 'Analyse Décision' }
   ];
+
+  // Show a signup prompt a few seconds after landing if not authenticated
+  useEffect(() => {
+    if (isSignedIn) {
+      setShowSignupPrompt(false);
+      setShowInlineAuth(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowSignupPrompt(true), 5000);
+    return () => clearTimeout(timer);
+  }, [isSignedIn]);
 
   return (
     <div className="relative">
@@ -128,6 +144,102 @@ export default function AppRouter() {
       {mode === 'mystique' && <AppV1 />}
       {mode === 'zeri' && <AppZeRi />}
       {mode === 'history' && <HistoryPage onClose={() => setMode('mystique')} />}
+
+      {/* Delayed signup prompt for guests */}
+      {!isSignedIn && showSignupPrompt && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+          <div className="max-w-2xl w-full glass gold-border rounded-[2rem] p-8 relative">
+            <button
+              onClick={() => setShowSignupPrompt(false)}
+              className="absolute top-4 right-4 text-stone-500 hover:text-white"
+              aria-label="Fermer"
+            >
+              ✕
+            </button>
+
+            <div className="text-center mb-6">
+              <p className="text-[#C5A059] text-xs uppercase tracking-[0.4em] mb-2">Accès complet</p>
+              <h3 className="text-3xl font-serif text-white mb-2">Crée ton compte en 30s</h3>
+              <p className="text-stone-400 text-sm">
+                Sauvegarde automatique de tes analyses · Confidentialité · Synchronisation multi-appareils
+              </p>
+            </div>
+
+            <div className="glass border border-stone-700 rounded-xl p-4 flex items-start gap-3 mb-4">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="mt-1 w-5 h-5 rounded border-2 border-[#C5A059] bg-transparent checked:bg-[#C5A059] cursor-pointer flex-shrink-0"
+              />
+              <div className="text-sm text-stone-300 text-left">
+                J'accepte les{' '}
+                <button
+                  onClick={() => setShowTermsModal(true)}
+                  className="text-[#C5A059] hover:text-[#D4AF37] underline transition-colors font-medium"
+                >
+                  Conditions Générales d'Utilisation
+                </button>
+              </div>
+            </div>
+
+            {!showInlineAuth ? (
+              <div className="flex flex-wrap gap-3 justify-center">
+                <button
+                  onClick={() => {
+                    if (!termsAccepted) {
+                      alert('Merci d’accepter les CGU avant de continuer.');
+                      return;
+                    }
+                    setShowInlineAuth(true);
+                  }}
+                  className="px-6 py-3 bg-[#C5A059] text-black font-bold uppercase tracking-[0.2em] rounded-xl hover:bg-[#D4AF37] transition-all"
+                >
+                  Connexion / Inscription
+                </button>
+                <button
+                  onClick={() => setShowSignupPrompt(false)}
+                  className="px-6 py-3 glass gold-border text-white rounded-xl hover:bg-white/5 transition-all"
+                >
+                  Plus tard
+                </button>
+              </div>
+            ) : (
+              <div className="mt-6">
+                <SignIn
+                  appearance={{
+                    elements: {
+                      rootBox: "w-full",
+                      card: "glass gold-border rounded-3xl shadow-2xl",
+                      headerTitle: "text-[#C5A059] font-serif",
+                      headerSubtitle: "text-stone-400",
+                      socialButtonsBlockButton: "glass gold-border hover:bg-[#C5A059]/10 transition-all",
+                      formButtonPrimary: "bg-[#C5A059] hover:bg-[#D4AF37] text-black font-bold",
+                      footerActionLink: "text-[#C5A059] hover:text-[#D4AF37]",
+                      formFieldInput: "glass border-stone-700 focus:border-[#C5A059] text-white",
+                      formFieldLabel: "text-stone-400",
+                      dividerLine: "bg-stone-700",
+                      dividerText: "text-stone-500",
+                    },
+                    variables: {
+                      colorPrimary: "#C5A059",
+                      colorBackground: "#121212",
+                      colorText: "#e5e5e5",
+                      colorInputBackground: "#1a1a1a",
+                      colorInputText: "#e5e5e5",
+                    }
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <TermsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+      />
     </div>
   );
 }

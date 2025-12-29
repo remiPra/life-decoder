@@ -18,6 +18,7 @@ interface ZeRiInput {
 function AppZeRiContent() {
   const { user } = useUser();
   const [step, setStep] = useState<Step>('input');
+  const PENDING_INPUT_KEY = 'life-decoder-zeri-pending-request';
 
   // Load from localStorage on mount
   const [input, setInput] = useState<ZeRiInput>(() => {
@@ -38,6 +39,13 @@ function AppZeRiContent() {
     }
   }, [input]);
 
+  // Clear pending request marker after login
+  useEffect(() => {
+    if (user && localStorage.getItem(PENDING_INPUT_KEY)) {
+      localStorage.removeItem(PENDING_INPUT_KEY);
+    }
+  }, [user]);
+
 
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -52,6 +60,11 @@ function AppZeRiContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      localStorage.setItem(PENDING_INPUT_KEY, JSON.stringify(input));
+      alert('Connecte-toi ou crée un compte pour lancer cette analyse. Nous avons sauvegardé tes infos.');
+      return;
+    }
     setLoading(true);
     setStep('loading');
 
