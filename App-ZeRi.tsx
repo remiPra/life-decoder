@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { exportMysticalAnalysisToPDF } from './utils/pdfExport';
 import { saveAnalysis } from './services/analysisService';
 import AuthGate from './components/AuthGate';
+import LoginPrompt from './components/LoginPrompt';
 
 type Step = 'input' | 'loading' | 'results';
 type DecisionType = 'mariage' | 'business' | 'demenagement' | 'signature' | 'lancement';
@@ -17,7 +18,9 @@ interface ZeRiInput {
 
 function AppZeRiContent() {
   const { user } = useUser();
+  const { isSignedIn } = useAuth();
   const [step, setStep] = useState<Step>('input');
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Load from localStorage on mount
   const [input, setInput] = useState<ZeRiInput>(() => {
@@ -97,7 +100,16 @@ Format de réponse en HTML avec des balises simples (p, strong, em, ul, li).`;
       setAnalysis(analysisResult);
       setStep('results');
 
-      // Save to Firebase
+      // Si utilisateur non connecté et c'est sa première analyse gratuite
+      if (!isSignedIn) {
+        localStorage.setItem('life-decoder-free-used', 'true');
+        // Afficher le prompt de connexion après un délai
+        setTimeout(() => {
+          setShowLoginPrompt(true);
+        }, 3000); // 3 secondes après avoir vu le résultat
+      }
+
+      // Save to Firebase only if signed in
       if (user) {
         try {
           await saveAnalysis({
@@ -298,13 +310,19 @@ Format de réponse en HTML avec des balises simples (p, strong, em, ul, li).`;
           </div>
         </div>
       )}
+
+      {/* Login Prompt après analyse gratuite */}
+      {showLoginPrompt && !isSignedIn && <LoginPrompt />}
     </div>
   );
 }
 
 export default function AppZeRi() {
+  // Check if user has used their free analysis
+  const hasUsedFree = localStorage.getItem('life-decoder-free-used') === 'true';
+
   return (
-    <AuthGate>
+    <AuthGate allowFreeAccess={!hasUsedFree}>
       <AppZeRiContent />
     </AuthGate>
   );
