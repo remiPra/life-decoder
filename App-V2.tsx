@@ -37,6 +37,40 @@ function AppContent() {
     if (dateNaissance) localStorage.setItem('life-decoder-v2-dateNaissance', dateNaissance);
   }, [dateNaissance]);
 
+  // Restaurer l'analyse en attente après connexion
+  useEffect(() => {
+    if (user && isSignedIn) {
+      const pending = sessionStorage.getItem('life-decoder-pending-analysis');
+      if (pending) {
+        try {
+          const data = JSON.parse(pending);
+          if (data.type === 'rational') {
+            // Afficher l'analyse immédiatement
+            setResult(data.result);
+            setStep(AppStep.RESULTS);
+
+            // Sauvegarder dans Firebase
+            saveAnalysis({
+              userId: user.id,
+              type: data.type,
+              prenom: data.prenom,
+              dateNaissance: data.dateNaissance,
+              input: data.decisionInput,
+              output: data.result
+            }).then(() => {
+              console.log('[App-V2] Pending analysis saved to Firebase after login');
+              sessionStorage.removeItem('life-decoder-pending-analysis');
+            }).catch(err => {
+              console.error('[App-V2] Error saving pending analysis:', err);
+            });
+          }
+        } catch (err) {
+          console.error('[App-V2] Error parsing pending analysis:', err);
+        }
+      }
+    }
+  }, [user, isSignedIn]);
+
   const [profile, setProfile] = useState<NumerologyProfile | null>(null);
   const [decisionType, setDecisionType] = useState<DecisionType | null>(null);
   const [result, setResult] = useState<DecisionResult | null>(null);
@@ -98,11 +132,22 @@ function AppContent() {
       setResult(fullResult);
       saveDecision(fullResult);
 
-      // Si utilisateur non connecté, incrémenter le compteur d'analyses gratuites
+      // Si utilisateur non connecté, incrémenter le compteur et sauvegarder temporairement
       if (!isSignedIn) {
         const freeCount = parseInt(localStorage.getItem('life-decoder-free-count') || '0');
         const newCount = freeCount + 1;
         localStorage.setItem('life-decoder-free-count', newCount.toString());
+
+        // Sauvegarder l'analyse en sessionStorage pour la récupérer après login
+        const pendingAnalysis = {
+          type: 'rational',
+          prenom,
+          dateNaissance,
+          decisionInput: data,
+          result: fullResult,
+          createdAt: new Date().toISOString()
+        };
+        sessionStorage.setItem('life-decoder-pending-analysis', JSON.stringify(pendingAnalysis));
 
         // Si c'est la 2ème analyse (dernière gratuite), afficher le prompt
         if (newCount >= 2) {

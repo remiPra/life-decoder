@@ -41,6 +41,40 @@ function AppZeRiContent() {
     }
   }, [input]);
 
+  // Restaurer l'analyse en attente après connexion
+  useEffect(() => {
+    if (user && isSignedIn) {
+      const pending = sessionStorage.getItem('life-decoder-pending-analysis');
+      if (pending) {
+        try {
+          const data = JSON.parse(pending);
+          if (data.type === 'zeri') {
+            // Afficher l'analyse immédiatement
+            setAnalysis(data.analysis);
+            setStep('results');
+
+            // Sauvegarder dans Firebase
+            saveAnalysis({
+              userId: user.id,
+              type: data.type,
+              prenom: data.prenom,
+              dateNaissance: data.dateNaissance,
+              input: data.input,
+              output: data.analysis
+            }).then(() => {
+              console.log('[App-ZeRi] Pending analysis saved to Firebase after login');
+              sessionStorage.removeItem('life-decoder-pending-analysis');
+            }).catch(err => {
+              console.error('[App-ZeRi] Error saving pending analysis:', err);
+            });
+          }
+        } catch (err) {
+          console.error('[App-ZeRi] Error parsing pending analysis:', err);
+        }
+      }
+    }
+  }, [user, isSignedIn]);
+
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
@@ -101,11 +135,26 @@ Format de réponse en HTML avec des balises simples (p, strong, em, ul, li).`;
       setAnalysis(analysisResult);
       setStep('results');
 
-      // Si utilisateur non connecté, incrémenter le compteur d'analyses gratuites
+      // Si utilisateur non connecté, incrémenter le compteur et sauvegarder temporairement
       if (!isSignedIn) {
         const freeCount = parseInt(localStorage.getItem('life-decoder-free-count') || '0');
         const newCount = freeCount + 1;
         localStorage.setItem('life-decoder-free-count', newCount.toString());
+
+        // Sauvegarder l'analyse en sessionStorage pour la récupérer après login
+        const pendingAnalysis = {
+          type: 'zeri',
+          prenom: input.prenom,
+          dateNaissance: input.dateNaissance,
+          input: {
+            decisionType: input.decisionType,
+            periode: input.periode,
+            details: input.details
+          },
+          analysis: analysisResult,
+          createdAt: new Date().toISOString()
+        };
+        sessionStorage.setItem('life-decoder-pending-analysis', JSON.stringify(pendingAnalysis));
 
         // Si c'est la 2ème analyse (dernière gratuite), afficher le prompt
         if (newCount >= 2) {

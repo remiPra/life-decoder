@@ -55,6 +55,39 @@ function AppContent() {
     }
   }, [identity]);
 
+  // Restaurer l'analyse en attente après connexion
+  useEffect(() => {
+    if (user && isSignedIn) {
+      const pending = sessionStorage.getItem('life-decoder-pending-analysis');
+      if (pending) {
+        try {
+          const data = JSON.parse(pending);
+
+          // Afficher l'analyse immédiatement
+          setAnalysis(data.analysis);
+          setStep(AppStep.CONSULTATION);
+
+          // Sauvegarder dans Firebase
+          saveAnalysis({
+            userId: user.id,
+            type: data.type,
+            prenom: data.prenom,
+            dateNaissance: data.dateNaissance,
+            input: { module: data.module, timing: data.timingCtx },
+            output: data.analysis
+          }).then(() => {
+            console.log('[App] Pending analysis saved to Firebase after login');
+            sessionStorage.removeItem('life-decoder-pending-analysis');
+          }).catch(err => {
+            console.error('[App] Error saving pending analysis:', err);
+          });
+        } catch (err) {
+          console.error('[App] Error parsing pending analysis:', err);
+        }
+      }
+    }
+  }, [user, isSignedIn]);
+
   const startInitiation = (e: React.FormEvent) => {
     e.preventDefault();
     const { firstName, day, month, year } = identity;
@@ -83,11 +116,23 @@ function AppContent() {
       const res = await runAnalysis(mod, profile, timingCtx);
       setAnalysis(res);
 
-      // Si utilisateur non connecté, incrémenter le compteur d'analyses gratuites
+      // Si utilisateur non connecté, incrémenter le compteur et sauvegarder temporairement
       if (!isSignedIn) {
         const freeCount = parseInt(localStorage.getItem('life-decoder-free-count') || '0');
         const newCount = freeCount + 1;
         localStorage.setItem('life-decoder-free-count', newCount.toString());
+
+        // Sauvegarder l'analyse en sessionStorage pour la récupérer après login
+        const pendingAnalysis = {
+          type: 'mystique',
+          prenom: profile.firstName,
+          dateNaissance: `${identity.year}-${identity.month.padStart(2, '0')}-${identity.day.padStart(2, '0')}`,
+          module: mod,
+          timingCtx,
+          analysis: res,
+          createdAt: new Date().toISOString()
+        };
+        sessionStorage.setItem('life-decoder-pending-analysis', JSON.stringify(pendingAnalysis));
 
         // Si c'est la 2ème analyse (dernière gratuite), afficher le prompt
         if (newCount >= 2) {
