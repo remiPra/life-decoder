@@ -1,0 +1,391 @@
+═══════════════════════════════════════════════════════════════════════════════
+LIFE DECODER - TYPES DE CONSULTATIONS
+Date : 06/01/2026
+Document généré automatiquement
+═══════════════════════════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════════════════════════
+1. TARIFICATION ET MODÈLE ÉCONOMIQUE
+═══════════════════════════════════════════════════════════════════════════════
+
+MODÈLE FREEMIUM
+────────────────────────────────────────────────────────────────────────────
+🎁 GRATUIT : 1 consultation par mois (utilisateurs non-connectés)
+   - Suivi par cookie local
+   - Analyse simplifiée avec modèle IA rapide
+
+💶 PAY-PER-DECISION : 6,99€ par consultation
+   - Accès à tous les types d'analyses
+   - Utilisation du modèle IA standard complet
+   - Streaming des réponses en temps réel
+
+📅 ABONNEMENT MENSUEL : 19,99€/mois
+   - Consultations illimitées
+   - Tous les types d'analyses disponibles
+   - Sauvegarde dans Firebase
+   - Historique complet
+   - Accès prioritaire
+
+═══════════════════════════════════════════════════════════════════════════════
+2. MODÈLES IA UTILISÉS
+═══════════════════════════════════════════════════════════════════════════════
+
+VERSION STANDARD (PAYANTE)
+────────────────────────────────────────────────────────────────────────────
+🤖 Modèle : Google Gemini 2.5 Flash
+🔗 Service : OpenRouter API
+📊 Paramètres :
+   • Max tokens : 2500
+   • Temperature : 0.8
+   • Streaming : Oui
+   • Langue : Français
+   • Style : Mystique mais accessible
+   • Raisonnement : Mode "thinking" activé
+💰 Coût : ~0,30$/M input tokens + 2,50$/M output tokens
+✨ Caractéristiques :
+   • Modèle workhorse équilibré
+   • Excellent raisonnement
+   • Analyse complète et détaillée
+   • Tous les calculs numérologiques
+   • Conseils pratiques et personnalisés
+   • Intégration de la numérologie pythagoricienne
+   • Très bon rapport qualité/prix
+   • Compatible OpenAI via OpenRouter
+
+VERSION RAPIDE (GRATUITE)
+────────────────────────────────────────────────────────────────────────────
+🤖 Modèle : Google Gemini 2.5 Flash Lite
+🔗 Service : OpenRouter API
+📊 Paramètres :
+   • Max tokens : 2000
+   • Temperature : 0.7
+   • Streaming : Oui
+   • Langue : Français
+   • Thinking : Désactivé (ultra-rapide)
+💰 Coût : Minimal (ultra-basse latence)
+✨ Caractéristiques :
+   • Optimisé pour la vitesse
+   • Analyse simplifiée
+   • Calculs : Chemin de Vie + Expression seulement
+   • Réponse très rapide
+   • Idéal pour découvrir le service
+   • Parfait pour le freemium
+
+═══════════════════════════════════════════════════════════════════════════════
+3. TYPES DE CONSULTATIONS DISPONIBLES
+═══════════════════════════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════════════════════════
+3.1 ANALYSES DE BASE (DÉBUTER)
+═══════════════════════════════════════════════════════════════════════════════
+
+1️⃣ LIFE DECODER BLUEPRINT
+   ID : life-decoder
+   Icone : 🧬
+   Description : Analyse complète de la personnalité
+   Recommandation : Point de départ idéal pour les nouveaux utilisateurs
+   Contenu :
+      • Profil numérologique complet
+      • Traits de personnalité majeurs
+      • Forces et faiblesses
+      • Potentiels de développement
+   Données requises :
+      • Prénom
+      • Nom
+      • Date de naissance
+
+2️⃣ SOUL PURPOSE FINDER
+   ID : soul-purpose
+   Icone : 🔮
+   Description : Mission de vie et potentiel
+   Contenu :
+      • Mission de vie profonde
+      • But spirituel
+      • Sens de l'existence
+      • Alignement avec son vrai soi
+   Données requises :
+      • Prénom
+      • Nom
+      • Date de naissance
+
+3️⃣ THÈME COMPLET
+   ID : complete-chart
+   Icone : 📊
+   Description : Vue exhaustive de tous les nombres
+   Contenu :
+      • Tous les calculs numérologiques détaillés
+      • Chemin de vie
+      • Nombre d'expression
+      • Âme native (désirs)
+      • Personnalité extérieure
+      • Réalisation (but de vie)
+      • Pouvoir caché
+      • Année personnelle
+      • Interprétations croisées
+   Données requises :
+      • Prénom
+      • Nom
+      • Date de naissance
+
+═══════════════════════════════════════════════════════════════════════════════
+3.2 ANALYSES SPÉCIALISÉES D'IDENTITÉ
+═══════════════════════════════════════════════════════════════════════════════
+
+4️⃣ EXPRESSION PROFILE
+   ID : expression-profile
+   Icone : 🎯
+   Description : Talents innés et capacités naturelles
+   Contenu :
+      • Talents naturels
+      • Capacités d'expression
+      • Style de communication
+      • Compétences innées
+      • Domaines d'excellence
+   Données requises :
+      • Prénom
+      • Nom
+      • Date de naissance
+
+5️⃣ CAREER DESTINY FINDER
+   ID : career-destiny
+   Icone : 💼
+   Description : Les 3 chemins de carrière optimaux
+   Contenu :
+      • Top 3 des carrières alignées
+      • Environnements de travail idéaux
+      • Style de leadership
+      • Relation avec l'argent professionnel
+      • Moments propices pour évoluer
+   Données requises :
+      • Prénom
+      • Nom
+      • Date de naissance
+
+6️⃣ RELATIONSHIP DESTINY MAP
+   ID : relationship-map
+   Icone : 💕
+   Description : Partenaire idéal et karma amoureux
+   Contenu :
+      • Profil du partenaire idéal
+      • Karma relationnel à travailler
+      • Périodes favorables à l'amour
+      • Styles de compatibilité
+      • Leçons sentimentales
+   Données requises :
+      • Prénom
+      • Nom
+      • Date de naissance
+
+7️⃣ WEALTH & ABUNDANCE CODE
+   ID : wealth-code
+   Icone : 💰
+   Description : Stratégie pour attirer l'abondance
+   Contenu :
+      • Relation personnelle avec l'argent
+      • Blocages et croyances limitantes
+      • Stratégies financières personnalisées
+      • Périodes propices aux investissements
+      • Type d'abondance naturel
+   Données requises :
+      • Prénom
+      • Nom
+      • Date de naissance
+
+═══════════════════════════════════════════════════════════════════════════════
+3.3 ORACLE TEMPOREL (ANALYSES TEMPORELLES)
+═══════════════════════════════════════════════════════════════════════════════
+
+8️⃣ DECISION TIMING ORACLE
+   ID : decision-oracle
+   Icone : ⚡
+   Description : Le meilleur moment pour agir
+   Contenu :
+      • Analyse énergétique du moment de la question
+      • Analyse du moment prévu pour l'action
+      • Score de timing (0-100%)
+      • Conseil : agir maintenant ou attendre
+      • Si attendre : date optimale recommandée
+      • Ajustements possibles
+   Données requises :
+      • Prénom
+      • Nom
+      • Date de naissance
+      • Date de la question
+      • Heure de la question
+      • Date de l'action prévue
+      • Heure de l'action prévue
+      • Type de question
+      • Contexte (optionnel)
+   Types de questions supportées :
+      • 🎯 Prise de décision
+      • 🚀 Lancement de projet
+      • 💕 Amour / Relation
+      • 💼 Carrière / Travail
+      • 💰 Argent / Investissement
+
+9️⃣ DAILY ALIGNMENT GUIDE
+   ID : daily-alignment
+   Icone : 🌅
+   Description : Énergie du jour et de l'instant
+   Contenu :
+      • Énergie du jour
+      • Actions recommandées
+      • À éviter aujourd'hui
+      • Moments power (fenêtres d'opportunité)
+      • Conseil de sagesse
+   Données requises :
+      • Prénom
+      • Nom
+      • Date de naissance
+      • Date du jour
+      • Heure actuelle (optionnelle)
+
+🔟 FUTURE TIMELINE GUIDE
+   ID : future-timeline
+   Icone : 📅
+   Description : Roadmap des 5 prochaines années
+   Contenu :
+      • Analyse année par année
+      • Thèmes majeurs de chaque année
+      • Périodes clés à anticiper
+      • Opportunités à saisir
+      • Défis potentiels
+      • Feuille de route personnelle
+   Données requises :
+      • Prénom
+      • Nom
+      • Date de naissance
+      • Année de référence
+
+═══════════════════════════════════════════════════════════════════════════════
+4. DONNÉES UTILISATEUR COLLECTÉES
+═══════════════════════════════════════════════════════════════════════════════
+
+PROFIL NUMÉROLOGIQUE
+────────────────────────────────────────────────────────────────────────────
+• firstName (string) : Prénom
+• lastName (string) : Nom
+• fullName (string) : Prénom et Nom complets
+• birthDay (number) : Jour de naissance (1-31)
+• birthMonth (number) : Mois de naissance (1-12)
+• birthYear (number) : Année de naissance
+
+NOMBRES CALCULÉS
+────────────────────────────────────────────────────────────────────────────
+• lifePath (number) : Chemin de vie
+• expression (number) : Nombre d'expression
+• soulUrge (number) : Âme native / Désirs
+• personality (number) : Personnalité extérieure
+• realization (number) : Réalisation / But de vie
+• hiddenPower (number) : Pouvoir caché
+• personalYear (number) : Année personnelle
+
+CONTEXTE TEMPOREL (Optionnel)
+────────────────────────────────────────────────────────────────────────────
+• questionDate (string) : Date de la question (format YYYY-MM-DD)
+• questionTime (string) : Heure de la question (format HH:mm)
+• actionDate (string) : Date de l'action prévue (format YYYY-MM-DD)
+• actionTime (string) : Heure de l'action prévue (format HH:mm)
+• questionType (string) : Type de question
+• context (string) : Contexte additionnel libre
+
+═══════════════════════════════════════════════════════════════════════════════
+5. SAUVEGARDE ET HISTORIQUE
+═══════════════════════════════════════════════════════════════════════════════
+
+UTILISATEURS CONNECTÉS
+────────────────────────────────────────────────────────────────────────────
+🔐 Authentification : Clerk
+💾 Base de données : Firestore (Firebase)
+📊 Sauvegarde automatique de chaque consultation
+📜 Historique complet accessible
+🔄 Possibilité de revoir les analyses passées
+
+UTILISATEURS NON-CONNECTÉS
+────────────────────────────────────────────────────────────────────────────
+🍪 Cookie local pour tracking
+💾 Sauvegarde locale temporaire
+📊 Limite : 1 consultation gratuite par mois
+⏰ Données perdues si cookies effacés
+
+STRUCTURE DE SAUVEGARDE
+────────────────────────────────────────────────────────────────────────────
+• id (string) : Identifiant unique de l'analyse
+• userId (string) : ID de l'utilisateur
+• type (string) : Type d'analyse ('mystique' | 'rational' | 'zeri')
+• prenom (string) : Prénom de la personne analysée
+• dateNaissance (string) : Date de naissance
+• input (object) : Données d'entrée complètes
+• output (object) : Résultats de l'analyse
+• createdAt (Date) : Date de création
+
+═══════════════════════════════════════════════════════════════════════════════
+6. ASPECTS TECHNIQUES
+═══════════════════════════════════════════════════════════════════════════════
+
+ARCHITECTURE
+────────────────────────────────────────────────────────────────────────────
+• Frontend : React + TypeScript
+• Authentification : Clerk
+• Base de données : Firestore (Firebase)
+• API IA : OpenRouter (pas de clé API exposée côté client)
+• Déploiement : Vercel avec serverless functions
+• Stockage local : localStorage pour sessions non-connectées
+
+SÉCURITÉ
+────────────────────────────────────────────────────────────────────────────
+✅ Clés API serveur uniquement (jamais exposées)
+✅ Authentification requise pour sauvegarde persistante
+✅ Données chiffrées en transit
+✅ Conformité RGWD (règlementation européenne)
+
+EXPÉRIENCE UTILISATEUR
+────────────────────────────────────────────────────────────────────────────
+✨ Streaming en temps réel des réponses IA
+✨ Interface intuitive et moderne
+✨ Design responsive (desktop + mobile)
+✨ Mode sombre/clair
+✨ Export des consultations en PDF
+✨ Partage des résultats
+
+═══════════════════════════════════════════════════════════════════════════════
+7. RÉSUMÉ DES OFFRES
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────┬──────────────────┬────────────────────┬─────────────┐
+│                     │   GRATUIT        │   PAY-PER-DECISION │  ABONNEMENT │
+├─────────────────────┼──────────────────┼────────────────────┼─────────────┤
+│ Prix                │   0€             │   6,99€            │   19,99€/mois│
+│ Limitation          │   1/mois         │   Illimité         │   Illimité   │
+│ Modèle IA           │   Gemini 2.5     │   Gemini 2.5       │   Gemini 2.5 │
+│                     │   Flash Lite     │   Flash            │   Flash      │
+│ Coût IA/consult     │   Minimal        │   ~0,01-0,02€      │   ~0,01-0,02€│
+│ Raisonnement        │   ❌ Non         │   ✅ Oui           │   ✅ Oui     │
+│ Analyses complètes  │   ❌ Simplifié   │   ✅ Oui           │   ✅ Oui     │
+│ Oracle temporel     │   ❌ Non         │   ✅ Oui           │   ✅ Oui     │
+│ Sauvegarde cloud    │   ❌ Non         │   ✅ Oui           │   ✅ Oui     │
+│ Historique          │   ❌ Non         │   ✅ Oui           │   ✅ Oui     │
+│ Streaming           │   ✅ Oui          │   ✅ Oui           │   ✅ Oui      │
+└─────────────────────┴──────────────────┴────────────────────┴─────────────┘
+
+AVANTAGES DE LA STACK GEMINI 2.5
+────────────────────────────────────────────────────────────────────────────
+✅ Cohérence de branding (full Google)
+✅ Excellente qualité de raisonnement
+✅ Coût maîtrisé (~0,01-0,02€ par consultation payante)
+✅ Très rentable avec un prix à 6,99€
+✅ Compatible OpenAI via OpenRouter
+✅ Streaming performant
+✅ Supporte les prompts longs et structurés
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN DU DOCUMENT
+
+Date de génération : 06/01/2026
+Version : 1.0
+Application : Life Decoder
+Contact : Support via GitHub Issues
+
+Ce document est à jour à la date de sa génération et est susceptible d'évoluer.
+Pour les informations les plus récentes, consultez l'application en ligne.
+═══════════════════════════════════════════════════════════════════════════════

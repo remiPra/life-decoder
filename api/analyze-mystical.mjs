@@ -15,14 +15,13 @@ export default async function handler(req, res) {
     const { systemPrompt, prompt } = req.body;
 
     const body = {
-      // model: 'anthropic/claude-opus-4.5',
-      model: "openai/gpt-5.1",
+      model: "google/gemini-2.5-flash",
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt }
       ],
       temperature: 0.8,
-      max_tokens: 4000,
+      max_tokens: 2500,
     };
 
     if (wantsStream) {
