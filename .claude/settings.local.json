@@ -10,7 +10,8 @@
       "Bash(npm install:*)",
       "Bash(vercel dev)",
       "Bash(npm run build:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(cat:*)"
     ]
   }
 }

@@ -5,9 +5,10 @@ import AppZeRi from './App-ZeRi';
 import AppRunes from './App-Runes';
 import HistoryPage from './components/HistoryPage';
 import TermsModal from './components/TermsModal';
+import LandingPage from './LandingPage';
 
 export default function AppRouter() {
-  const [mode, setMode] = useState<'mystique' | 'zeri' | 'runes' | 'history'>('mystique');
+  const [mode, setMode] = useState<'home' | 'mystique' | 'zeri' | 'runes' | 'history'>('home');
   const [menuOpen, setMenuOpen] = useState(false);
   const { isSignedIn } = useAuth();
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
@@ -49,31 +50,35 @@ export default function AppRouter() {
 
   return (
     <div className="relative">
-      {/* Menu Drawer Button + User button */}
-      <div className="fixed top-6 left-6 z-50">
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="glass px-4 py-3 rounded-full gold-border hover:bg-[#C5A059]/10 transition-all"
-        >
-          <svg className="w-6 h-6 text-[#C5A059]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
-
-      <div className="fixed top-6 right-6 z-50">
-        {isSignedIn && (
-          <div className="glass px-3 py-2 rounded-full gold-border">
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-8 h-8"
-                }
-              }}
-            />
+      {/* Menu Drawer Button + User button (not on landing page) */}
+      {mode !== 'home' && (
+        <>
+          <div className="fixed top-6 left-6 z-50">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="glass px-4 py-3 rounded-full gold-border hover:bg-[#C5A059]/10 transition-all"
+            >
+              <svg className="w-6 h-6 text-[#C5A059]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
-        )}
-      </div>
+
+          <div className="fixed top-6 right-6 z-50">
+            {isSignedIn && (
+              <div className="glass px-3 py-2 rounded-full gold-border">
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8"
+                    }
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Menu Drawer */}
       {menuOpen && (
@@ -92,6 +97,27 @@ export default function AppRouter() {
             </div>
 
             <div className="space-y-4">
+              {/* Accueil Button */}
+              <button
+                onClick={() => {
+                  setMode('home');
+                  setMenuOpen(false);
+                }}
+                className={`w-full text-left p-4 rounded-xl transition-all ${
+                  mode === 'home'
+                    ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20'
+                    : 'glass border border-stone-700 text-stone-300 hover:border-[#C5A059]/50'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="text-3xl">🏠</span>
+                  <div>
+                    <div className="font-serif text-lg mb-1">Accueil</div>
+                    <div className="text-xs opacity-70">Tous les services</div>
+                  </div>
+                </div>
+              </button>
+
               {modes.map((m) => (
                 <button
                   key={m.id}
@@ -150,10 +176,17 @@ export default function AppRouter() {
       )}
 
       {/* Render le bon composant */}
+      {mode === 'home' && (
+        <LandingPage
+          onStartMode={(m) => setMode(m)}
+          onLogin={() => setShowSignupPrompt(true)}
+          isSignedIn={!!isSignedIn}
+        />
+      )}
       {mode === 'mystique' && <AppV1 />}
       {mode === 'zeri' && <AppZeRi />}
       {mode === 'runes' && <AppRunes />}
-      {mode === 'history' && <HistoryPage onClose={() => setMode('mystique')} />}
+      {mode === 'history' && <HistoryPage onClose={() => setMode('home')} />}
 
       {/* Delayed signup prompt for guests */}
       {!isSignedIn && showSignupPrompt && (
