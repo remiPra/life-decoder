@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://life-decoder.vercel.app/</loc>
+    <lastmod>2026-01-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://life-decoder.vercel.app/og-image.png</image:loc>
+      <image:title>Life Decoder - Oracle Mystique IA</image:title>
+    </image:image>
+  </url>
+
+  <!-- Mode Mystique / Numérologie -->
+  <url>
+    <loc>https://life-decoder.vercel.app/#mystique</loc>
+    <lastmod>2026-01-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Mode 择日 (Calendrier Lunaire Chinois) -->
+  <url>
+    <loc>https://life-decoder.vercel.app/#zeri</loc>
+    <lastmod>2026-01-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Mode Runes Investisseur -->
+  <url>
+    <loc>https://life-decoder.vercel.app/#runes</loc>
+    <lastmod>2026-01-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+</urlset>

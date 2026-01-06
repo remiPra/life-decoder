@@ -1,23 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { AppStep, DecisionType, DecisionInput, DecisionResult } from './decision-types';
 import { NumerologyProfile } from './types';
-import { analyzeDecision } from './decisionEngine';
-import { saveDecision } from './storageUtils';
+import { calculateNumerology } from './utils/numerology';
 import { saveAnalysis } from './services/analysisService';
-
-import Welcome from './Welcome';
-import ProfileForm from './ProfileForm';
-import DecisionTypeSelector from './DecisionTypeSelector';
-import DecisionCanvas from './DecisionCanvas';
-import ResultsView from './ResultsView';
 import AuthGate from './components/AuthGate';
+import { useFreeAnalyses } from './hooks/useFreeAnalyses';
+
+type AppStep = 'welcome' | 'form' | 'loading' | 'results';
 
 function AppContent() {
   const { user } = useUser();
-  const [step, setStep] = useState<AppStep>(AppStep.WELCOME);
-  const PENDING_KEY = 'life-decoder-v2-pending-analysis';
-  const PENDING_INPUT_KEY = 'life-decoder-v2-pending-analysis-input';
+  const { consumeAnalysis } = useFreeAnalyses();
+  const [step, setStep] = useState<AppStep>('welcome');
 
   // Load from localStorage on mount
   const [prenom, setPrenom] = useState(() => {
@@ -26,6 +20,10 @@ function AppContent() {
   const [dateNaissance, setDateNaissance] = useState(() => {
     return localStorage.getItem('life-decoder-v2-dateNaissance') || '';
   });
+  const [dateAction, setDateAction] = useState('');
+  const [question, setQuestion] = useState('');
+  const [analysis, setAnalysis] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   // Save to localStorage when they change
   useEffect(() => {
@@ -36,95 +34,85 @@ function AppContent() {
     if (dateNaissance) localStorage.setItem('life-decoder-v2-dateNaissance', dateNaissance);
   }, [dateNaissance]);
 
-
-  const [profile, setProfile] = useState<NumerologyProfile | null>(null);
-  const [decisionType, setDecisionType] = useState<DecisionType | null>(null);
-  const [result, setResult] = useState<DecisionResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const handleStart = () => {
-    setStep(AppStep.PROFILE);
+    setStep('form');
   };
 
-  const handleProfileSubmit = (newPrenom: string, newDateNaissance: string, newProfile: NumerologyProfile) => {
-    setPrenom(newPrenom);
-    setDateNaissance(newDateNaissance);
-    setProfile(newProfile);
-    setStep(AppStep.DECISION_TYPE);
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const handleDecisionTypeSelect = (type: DecisionType) => {
-    setDecisionType(type);
-    setStep(AppStep.DECISION_CANVAS);
-  };
-
-  const handleDecisionComplete = async (data: {
-    situation: string;
-    decision: string;
-    echeance?: string;
-    importance: number;
-  }) => {
-    if (!profile || !decisionType) return;
-
-    if (!user) {
-      // Keep the request so the user can log in without losing the selection
-      const pendingInput = {
-        type: 'rational' as const,
-        prenom,
-        dateNaissance,
-        input: data,
-      };
-      localStorage.setItem(PENDING_INPUT_KEY, JSON.stringify(pendingInput));
-      window.dispatchEvent(new Event('life-decoder:require-auth'));
+    if (!prenom || !dateNaissance || !dateAction || !question) {
+      setError('Merci de remplir tous les champs');
       return;
     }
 
-    setLoading(true);
+    setStep('loading');
     setError(null);
-    setStep(AppStep.RESULTS);
 
-    const decisionInput: DecisionInput = {
-      id: crypto.randomUUID(),
-      prenom,
-      dateNaissance,
-      anneePerso: profile.personalYear,
-      moisPerso: profile.personalMonth,
-      jourPerso: profile.personalDay,
-      typeDecision: decisionType,
-      situation: data.situation,
-      decision: data.decision,
-      echeance: data.echeance,
-      importance: data.importance,
-      createdAt: new Date()
-    };
+    // Consommer une analyse gratuite si non connecté
+    if (!user) {
+      consumeAnalysis();
+    }
 
     try {
-      const analysis = await analyzeDecision(decisionInput);
+      // Calculer la numérologie
+      const profile = calculateNumerology(prenom, dateNaissance);
+      const actionProfile = calculateNumerology(prenom, dateAction);
 
-      const fullResult: DecisionResult = {
-        id: decisionInput.id,
-        ...analysis,
-        createdAt: new Date()
-      };
+      // Appeler l'API d'analyse
+      const prompt = `Tu es Life Decoder, un expert en numérologie et aide à la décision.
 
-      setResult(fullResult);
-      saveDecision(fullResult);
+PROFIL DE LA PERSONNE:
+- Prénom: ${prenom}
+- Date de naissance: ${dateNaissance}
+- Chemin de vie: ${profile.lifePath}
+- Nombre d'expression: ${profile.expression}
+- Année personnelle actuelle: ${profile.personalYear}
 
-      // Keep a local draft if the user is not signed in yet
-      if (!user) {
-        const pendingPayload = {
-          type: 'rational' as const,
-          prenom,
-          dateNaissance,
-          input: data,
-          output: fullResult,
-          createdAt: new Date().toISOString()
-        };
-        localStorage.setItem(PENDING_KEY, JSON.stringify(pendingPayload));
-      }
+DATE DE L'ACTION ENVISAGÉE:
+- Date: ${dateAction}
+- Année personnelle: ${actionProfile.personalYear}
+- Mois personnel: ${actionProfile.personalMonth}
+- Jour personnel: ${actionProfile.personalDay}
 
-      // Sauvegarder dans Firebase
+QUESTION/ACTION:
+${question}
+
+MISSION:
+Analyse cette situation et donne:
+1. **Alignement numérologique** - Est-ce que cette date est favorable pour cette personne?
+2. **Points forts** - Pourquoi cette période peut être bénéfique
+3. **Points de vigilance** - Ce à quoi faire attention
+4. **Conseil pratique** - Une recommandation concrète
+
+Ton analyse doit être:
+- Claire et directe
+- Basée sur la numérologie
+- Positive mais honnête
+- Avec des conseils actionnables
+
+Format de réponse en HTML avec des balises simples (h2, p, strong, em, ul, li).`;
+
+      const apiEndpoint = user ? '/api/analyze-mystical' : '/api/analyze-fast';
+
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemPrompt: 'Tu es Life Decoder, expert en numérologie et aide à la décision.',
+          prompt
+        })
+      });
+
+      if (!response.ok) throw new Error('Erreur API');
+
+      const data = await response.json();
+      const analysisResult = data.choices[0].message.content || 'Aucune analyse reçue.';
+
+      setAnalysis(analysisResult);
+      setStep('results');
+
+      // Sauvegarder dans Firebase si connecté
       if (user) {
         try {
           await saveAnalysis({
@@ -132,145 +120,156 @@ function AppContent() {
             type: 'rational',
             prenom,
             dateNaissance,
-            input: data,
-            output: fullResult
+            input: {
+              dateAction,
+              question
+            },
+            output: analysisResult
           });
           console.log('[App-V2] Analysis saved to Firebase');
         } catch (firebaseError) {
           console.error('[App-V2] Error saving to Firebase:', firebaseError);
-          // Ne pas bloquer l'affichage des résultats si Firebase échoue
         }
       }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
-      console.error('Error analyzing decision:', err);
-    } finally {
-      setLoading(false);
+      console.error('Error analyzing:', err);
+      setStep('form');
     }
   };
 
-  // Sync any locally saved analysis after login
-  useEffect(() => {
-    if (!user) return;
-
-    // Clear any pending request hint (was stored when user tried while logged out)
-    if (localStorage.getItem(PENDING_INPUT_KEY)) {
-      localStorage.removeItem(PENDING_INPUT_KEY);
-    }
-
-    const raw = localStorage.getItem(PENDING_KEY);
-    if (!raw) return;
-
-    try {
-      const pending = JSON.parse(raw);
-      if (pending?.type === 'rational') {
-        saveAnalysis({
-          userId: user.id,
-          type: 'rational',
-          prenom: pending.prenom,
-          dateNaissance: pending.dateNaissance,
-          input: pending.input,
-          output: pending.output
-        }).then(() => {
-          console.log('[App-V2] Pending analysis synced after login');
-          localStorage.removeItem(PENDING_KEY);
-        }).catch((err) => {
-          console.error('[App-V2] Error syncing pending analysis:', err);
-        });
-      }
-    } catch (err) {
-      console.error('[App-V2] Failed to parse pending analysis:', err);
-    }
-  }, [user]);
-
-  const handleNewDecision = () => {
-    setStep(AppStep.WELCOME);
-    setPrenom('');
-    setDateNaissance('');
-    setProfile(null);
-    setDecisionType(null);
-    setResult(null);
+  const handleNewAnalysis = () => {
+    setStep('welcome');
+    setDateAction('');
+    setQuestion('');
+    setAnalysis('');
     setError(null);
-  };
-
-  const handleBackFromCanvas = () => {
-    setStep(AppStep.DECISION_TYPE);
-  };
-
-  const handleFeedback = (feedback: 'positive' | 'neutral' | 'negative') => {
-    if (result) {
-      const updatedResult = { ...result, feedback };
-      setResult(updatedResult);
-      saveDecision(updatedResult);
-    }
   };
 
   return (
     <div className="min-h-screen bg-[#050505] text-stone-300 font-sans overflow-x-hidden">
-      {step === AppStep.WELCOME && (
-        <Welcome onStart={handleStart} />
+
+      {/* WELCOME */}
+      {step === 'welcome' && (
+        <div className="max-w-3xl mx-auto mt-32 fade-in px-6 text-center">
+          <h1 className="text-6xl font-serif text-white mb-6 gold-glow">Life Decoder</h1>
+          <p className="text-xl text-stone-400 mb-12">Mode Rationnel - Analyse de timing</p>
+          <button
+            onClick={handleStart}
+            className="px-12 py-5 bg-[#C5A059] text-black font-bold text-lg rounded-xl hover:bg-[#D4AF37] transition-all active:scale-95 gold-glow"
+          >
+            Commencer l'analyse
+          </button>
+        </div>
       )}
 
-      {step === AppStep.PROFILE && (
-        <ProfileForm onSubmit={handleProfileSubmit} />
-      )}
+      {/* FORM */}
+      {step === 'form' && (
+        <div className="max-w-2xl mx-auto mt-20 fade-in px-6">
+          <div className="glass p-10 rounded-[2.5rem] gold-border">
+            <h2 className="text-3xl font-serif text-white mb-8 text-center">Ton profil</h2>
 
-      {step === AppStep.DECISION_TYPE && (
-        <DecisionTypeSelector onSelect={handleDecisionTypeSelect} />
-      )}
-
-      {step === AppStep.DECISION_CANVAS && decisionType && (
-        <DecisionCanvas
-          decisionType={decisionType}
-          onComplete={handleDecisionComplete}
-          onBack={handleBackFromCanvas}
-        />
-      )}
-
-      {step === AppStep.RESULTS && (
-        <>
-          {loading && (
-            <div className="fixed inset-0 bg-black/98 flex flex-col items-center justify-center z-50">
-              <div className="relative w-64 h-64">
-                <div className="absolute inset-0 border-[1px] border-stone-900 rounded-full"></div>
-                <div className="absolute inset-0 border-t-[2px] border-[#C5A059] rounded-full animate-spin"></div>
-                <div className="absolute inset-8 border-[1px] border-stone-900 rounded-full animate-pulse"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-[12px] text-[#C5A059] font-serif tracking-[0.6em] uppercase gold-glow animate-pulse text-center leading-loose">
-                    Analyse<br />En Cours
-                  </span>
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm text-stone-400 mb-2">Prénom</label>
+                <input
+                  type="text"
+                  value={prenom}
+                  onChange={(e) => setPrenom(e.target.value)}
+                  className="w-full bg-black/50 border border-stone-700 rounded-xl px-4 py-3 text-white focus:border-[#C5A059] focus:outline-none"
+                  placeholder="Ton prénom"
+                  required
+                />
               </div>
-              <p className="mt-16 text-stone-600 text-[10px] tracking-[0.5em] uppercase font-bold animate-pulse">
-                Life Decoder analyse ta situation...
-              </p>
-            </div>
-          )}
 
-          {error && !loading && (
-            <div className="max-w-2xl mx-auto mt-20 fade-in px-6">
-              <div className="glass p-10 rounded-[2.5rem] border-2 border-red-500/30 text-center">
-                <p className="text-red-400 mb-6">❌ {error}</p>
-                <button
-                  onClick={() => setStep(AppStep.DECISION_CANVAS)}
-                  className="px-8 py-4 bg-[#C5A059] text-black font-bold rounded-xl hover:bg-[#D4AF37] transition-all active:scale-95"
-                >
-                  Réessayer
-                </button>
+              <div>
+                <label className="block text-sm text-stone-400 mb-2">Date de naissance</label>
+                <input
+                  type="date"
+                  value={dateNaissance}
+                  onChange={(e) => setDateNaissance(e.target.value)}
+                  className="w-full bg-black/50 border border-stone-700 rounded-xl px-4 py-3 text-white focus:border-[#C5A059] focus:outline-none"
+                  required
+                />
               </div>
-            </div>
-          )}
 
-          {result && !loading && !error && (
-            <ResultsView
-              result={result}
-              prenom={prenom}
-              onNewDecision={handleNewDecision}
-              onFeedback={handleFeedback}
-            />
-          )}
-        </>
+              <div>
+                <label className="block text-sm text-stone-400 mb-2">Date de l'action envisagée</label>
+                <input
+                  type="date"
+                  value={dateAction}
+                  onChange={(e) => setDateAction(e.target.value)}
+                  className="w-full bg-black/50 border border-stone-700 rounded-xl px-4 py-3 text-white focus:border-[#C5A059] focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-stone-400 mb-2">Que veux-tu faire ?</label>
+                <textarea
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  className="w-full bg-black/50 border border-stone-700 rounded-xl px-4 py-3 text-white focus:border-[#C5A059] focus:outline-none min-h-[120px]"
+                  placeholder="Ex: Lancer mon projet, démissionner, demander une augmentation..."
+                  required
+                />
+              </div>
+
+              {error && (
+                <p className="text-red-400 text-sm text-center">{error}</p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full px-8 py-4 bg-[#C5A059] text-black font-bold rounded-xl hover:bg-[#D4AF37] transition-all active:scale-95"
+              >
+                Analyser le timing
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* LOADING */}
+      {step === 'loading' && (
+        <div className="fixed inset-0 bg-black/98 flex flex-col items-center justify-center z-50">
+          <div className="relative w-64 h-64">
+            <div className="absolute inset-0 border-[1px] border-stone-900 rounded-full"></div>
+            <div className="absolute inset-0 border-t-[2px] border-[#C5A059] rounded-full animate-spin"></div>
+            <div className="absolute inset-8 border-[1px] border-stone-900 rounded-full animate-pulse"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-[12px] text-[#C5A059] font-serif tracking-[0.6em] uppercase gold-glow animate-pulse text-center leading-loose">
+                Analyse<br />En Cours
+              </span>
+            </div>
+          </div>
+          <p className="mt-16 text-stone-600 text-[10px] tracking-[0.5em] uppercase font-bold animate-pulse">
+            Life Decoder analyse ton timing...
+          </p>
+        </div>
+      )}
+
+      {/* RESULTS */}
+      {step === 'results' && (
+        <div className="max-w-4xl mx-auto mt-20 fade-in px-6 pb-20">
+          <div className="glass p-10 rounded-[2.5rem] gold-border">
+            <h2 className="text-3xl font-serif text-white mb-8 text-center">Ton analyse</h2>
+
+            <div className="prose prose-invert prose-stone max-w-none">
+              <div dangerouslySetInnerHTML={{ __html: analysis }} />
+            </div>
+
+            <div className="mt-10 text-center">
+              <button
+                onClick={handleNewAnalysis}
+                className="px-8 py-4 bg-[#C5A059] text-black font-bold rounded-xl hover:bg-[#D4AF37] transition-all active:scale-95"
+              >
+                Nouvelle analyse
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
@@ -279,7 +278,7 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthGate allowFreeAccess>
+    <AuthGate allowFreeAccess={true} showCounter={true}>
       <AppContent />
     </AuthGate>
   );

@@ -4,6 +4,7 @@ import { exportMysticalAnalysisToPDF } from './utils/pdfExport';
 import { saveAnalysis } from './services/analysisService';
 import { streamCompletion } from './utils/streaming';
 import AuthGate from './components/AuthGate';
+import SEOHead from './components/SEOHead';
 
 type Step = 'input' | 'loading' | 'results';
 type DecisionType = 'mariage' | 'business' | 'demenagement' | 'signature' | 'lancement';
@@ -152,6 +153,23 @@ Format de réponse en HTML avec des balises simples (p, strong, em, ul, li).`;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-6 md:p-12">
+
+      <SEOHead
+        title="择日 (Zé Rì) — Calendrier Lunaire Chinois pour Dates Favorables | Life Decoder"
+        description="Consultez le calendrier lunaire chinois 择日 pour trouver les dates les plus favorables pour mariage, business, déménagement et projets importants."
+        keywords="择日, calendrier lunaire chinois, dates favorables, feng shui, wu xing, 5 éléments, divination chinoise"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "serviceType": "Calendrier Lunaire Chinois 择日",
+          "provider": {
+            "@type": "Organization",
+            "name": "Life Decoder"
+          },
+          "description": "Sélection de dates favorables selon le calendrier lunaire chinois et les principes Wu Xing (5 éléments)"
+        }}
+      />
+
       {/* Header */}
       <header className="text-center mb-16 fade-in">
         <div className="inline-block mb-4">

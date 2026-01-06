@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { UserButton, useAuth, SignIn } from '@clerk/clerk-react';
 import AppV1 from './App';
-import AppV2 from './App-V2';
 import AppZeRi from './App-ZeRi';
+import AppRunes from './App-Runes';
 import HistoryPage from './components/HistoryPage';
 import TermsModal from './components/TermsModal';
 
 export default function AppRouter() {
-  const [mode, setMode] = useState<'rational' | 'mystique' | 'zeri' | 'history'>('mystique');
+  const [mode, setMode] = useState<'mystique' | 'zeri' | 'runes' | 'history'>('mystique');
   const [menuOpen, setMenuOpen] = useState(false);
   const { isSignedIn } = useAuth();
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
@@ -23,7 +23,7 @@ export default function AppRouter() {
   const modes = [
     { id: 'mystique' as const, icon: '🔮', label: 'Mystique', desc: 'Numérologie & Oracle' },
     { id: 'zeri' as const, icon: '🌙', label: '择日', desc: 'Dates Favorables' },
-    { id: 'rational' as const, icon: '✨', label: 'Rationnel', desc: 'Analyse Décision' }
+    { id: 'runes' as const, icon: 'ᚱ', label: 'Runes Investisseur', desc: 'Divination financière' }
   ];
 
   // Show a signup prompt a few seconds after landing if not authenticated
@@ -150,9 +150,9 @@ export default function AppRouter() {
       )}
 
       {/* Render le bon composant */}
-      {mode === 'rational' && <AppV2 />}
       {mode === 'mystique' && <AppV1 />}
       {mode === 'zeri' && <AppZeRi />}
+      {mode === 'runes' && <AppRunes />}
       {mode === 'history' && <HistoryPage onClose={() => setMode('mystique')} />}
 
       {/* Delayed signup prompt for guests */}

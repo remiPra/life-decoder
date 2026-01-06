@@ -6,6 +6,7 @@ import { runAnalysis } from './services/mysticalEngine';
 import { exportMysticalAnalysisToPDF } from './utils/pdfExport';
 import { saveAnalysis } from './services/analysisService';
 import AuthGate from './components/AuthGate';
+import SEOHead from './components/SEOHead';
 
 const InputField = ({ label, value, onChange, placeholder, type = "text", maxLength }: any) => (
   <div className="space-y-2">
@@ -211,6 +212,22 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-stone-300 font-sans p-6 md:p-12 overflow-x-hidden">
+
+      <SEOHead
+        title="Life Decoder — Numérologie & Oracle Mystique IA"
+        description="Découvre ton chemin de vie, ton nombre d'expression et ta mission d'âme grâce à la numérologie assistée par IA. Analyses mystiques personnalisées."
+        keywords="numérologie, chemin de vie, nombre d'expression, oracle, mystique, IA, analyse personnelle"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "serviceType": "Numérologie et Oracle Mystique",
+          "provider": {
+            "@type": "Organization",
+            "name": "Life Decoder"
+          },
+          "description": "Analyse numérologique complète incluant chemin de vie, expression, mission d'âme et cycles personnels"
+        }}
+      />
 
       {step === AppStep.INITIATION && (
         <div className="max-w-xl mx-auto mt-12 fade-in text-center">

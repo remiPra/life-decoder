@@ -1,0 +1,13 @@
+# robots.txt for Life Decoder
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://life-decoder.vercel.app/sitemap.xml
+
+# Crawl-delay (optional, pour éviter surcharge serveur)
+Crawl-delay: 1
+
+# Disallow routes privées/API si nécessaire
+Disallow: /api/
